@@ -29,9 +29,6 @@ with open(DATA_PATH, "r") as f:
 print("Loaded examples:", len(train_data))
 print("First example:", train_data[0])
 
-# ❌ REMOVE THIS BROKEN LINE:
-# train_data = [json.load(open("amrex_dataset.jsonl"))]
-
 # Convert to HuggingFace Dataset
 train_dataset = Dataset.from_list(train_data)
 
