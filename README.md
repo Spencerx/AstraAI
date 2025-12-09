@@ -1,6 +1,10 @@
-# Mistral Environment Setup on Linux
+# Inference and fine-tuning of LLMs on Linux machines
+This repository is aimed at detailing the process of setting up large language models (LLM) 
+on Linux machines and performing inference, domain adaptive pre-training (DAPT), and fine-tuning. 
 
-This README sets up a Python environment for running Mistral models on a Linux filesystem. 
+# Environment Setup on Linux
+
+This README sets up a Python environment for running LLM models on a Linux filesystem. 
 The Perlmutter scratch is chosen to do the installation.
 
 ```bash
@@ -37,10 +41,10 @@ python -c "import transformers; print(transformers.__version__)"
 huggingface-cli login
 
 # Download the Mistral model
-huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 --local-dir /pscratch/sd/n/nataraj2/mistral/7b --local-dir-use-symlinks False
+huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <dir-to-install> --local-dir-use-symlinks False
 
 # Optionally, set Hugging Face home to a persistent location
-export HF_HOME=/pscratch/sd/n/nataraj2/.hf
+export HF_HOME=<path-to-hugging-face>/.hf
 ```
 
 ## Hugging Face Authentication for Mistral Models
