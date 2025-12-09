@@ -14,7 +14,7 @@ This will produce the instruction response pairs in `.jsonl` format that is need
 ```
 source <path-to-mistral-env>/bin/activate
 ```
-4. Get a GPU node and run the python script for fine tuning 
+4. Get a GPU node and run the python script for fine tuning   
 `python3 FineTuning.py`
 
 ![Example of fine tuning of mistral 7b model on Perlmutter GPUs for AMReX](../Images/FineTuning.gif)
