@@ -47,9 +47,9 @@ huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <dir-to-
 export HF_HOME=<path-to-hugging-face>/.hf
 ```
 
-## Hugging Face Authentication for Mistral Models
+## Hugging Face Authentication
 
-To download Mistral models (or other private Hugging Face models), you need to authenticate with your Hugging Face account using an access token.
+To download LLMs available on Hugging Face, you need to authenticate with your Hugging Face account using an access token.
 
 ### 1. Create a Hugging Face account
 
