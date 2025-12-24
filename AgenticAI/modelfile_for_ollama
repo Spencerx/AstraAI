@@ -1,0 +1,10 @@
+# Replace with the EXACT path to your .gguf file
+FROM /pscratch/sd/n/nataraj2/AI_ModCon/ModelsAndTools/Models/mistral-7b-instruct-v0.3-q8_0.gguf
+
+# Mistral 0.3 specific chat template
+TEMPLATE "[INST] {{ .System }} {{ .Prompt }} [/INST]"
+
+# Set parameters for better coding performance
+PARAMETER stop "[INST]"
+PARAMETER stop "[/INST]"
+PARAMETER temperature 0.1
