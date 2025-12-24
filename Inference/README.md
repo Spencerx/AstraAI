@@ -1,90 +1,108 @@
-# How to run inference?
+# Running a Quantized LLM with llama.cpp and Ollama on HPC
 
-1. Enter the Mistral environment created using the steps mentioned in the [README section](https://github.com/AIModCon/modcon-hpc/tree/main?tab=readme-ov-file#mistral-environment-setup-on-linux)
-```
-source <path-to-mistral-env>/bin/activate
-```
+This document describes the end-to-end workflow to:
+- Build `llama.cpp`
+- Convert a Hugging Face model to quantized GGUF format
+- Register the model with Ollama
+- Run inference on an interactive compute node
 
-2. A prompt should be given in a text file `prompt.txt`. An example is 
-```
-Can you write an AMReX code that demonstrates the creation of a MultiFab and writes a plotfile with this multifab in it?
-```
-3. Get a GPU interactive node  
+---
 
-4. Run the inference as 
-```
-python3 inference.py
-```
+## 1. Get llama.cpp in the current directory
 
-5. The output is written into a file `output.txt`. The above prompt gave the following output -
+Run the provided script to clone and build `llama.cpp`:
 
-```
-Can you write an AMReX code that demonstrates the creation of a MultiFab and writes a plotfile with this multifab in it?
+    sh get_llama_cpp.sh
 
-Yes, here's an example AMReX code that demonstrates the creation of a MultiFab and writes a plotfile with this multifab in it. This example assumes you have a simple scalar field `A` defined on a given BoxArray `grid`.
+This typically takes about **10 minutes**.
 
-```cpp
-#include <AMReX.H>
+---
 
-int main(int argc, char* argv[])
-{
-    // Initialize AMReX
-    amrex::Initialize(argc, argv);
+## 2. Activate the ModCon environment and convert the Hugging Face model to GGUF
 
-    // Define BoxArray and Grid
-    const int nx = 32;
-    const int ny = 16;
-    const int nz = 16;
-    BoxArray ba(BlkDim(nx, ny, nz));
-    Geometry geom(amrex::Edges(nx, ny, nz), amrex::IntVect(0, 0, 0),
-                  amrex::IntVect(nx-1, ny-1, nz-1), nx, ny, nz);
+Activate the ModCon Python environment:
 
-    // Create MultiFab for scalar field A
-    MultiFab A("A", ba, 1, MFInfo(), MFType::REAL);
+    source <path-to-modcon-env>/bin/activate
 
-    // Set initial values for scalar field A
-    for (MFIter mfi(A); mfi.isValid(); ++mfi) {
-        const auto& fab = A[mfi];
-        const Box& bx = mfi.box();
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-                for (int k = 0; k < AMREX_SPACEDIM; ++k) {
-                    fab(i, j, k) = 1.0;
-                }
-            }
-        }
-    }
+Convert the Hugging Face–downloaded model to **quantized GGUF (Q8_0)** format:
 
-    // Write plotfile for scalar field A
-    ParallelFile pf("output.pots", "write", MPI_COMM_WORLD);
-    if (pf.isOpen()) {
-        pf << "Field A" << std::endl;
-        pf << "Zone (" << ba.numPts() << ")" << std::endl;
-        pf << "Data format: AMR" << std::endl;
-        pf << "Data type: Real" << std::endl;
-        pf << "Coordinates format: Cartesian" << std::endl;
-        pf << "Coordinates:" << std::endl;
-        pf << "x y z" << std::endl;
-        for (MFIter mfi(A); mfi.isValid(); ++mfi) {
-            const auto& fab = A[mfi];
-            const Box& bx = mfi.box();
-            for (int i = 0; i < bx.size(); ++i) {
-                const int idx = bx.index3d(i);
-                const Real x = geom[0].x(idx);
-                const Real y = geom[1].x(idx);
-                const Real z = geom[2].x(idx);
-                pf << x << " " << y << " " << z << std::endl;
-                pf << fab(i) << std::endl;
-            }
-        }
-        pf.close();
-    }
+    python3 <path-to-llama.cpp>/convert_hf_to_gguf.py \
+        <path-to-hugging-face-downloaded-model-dir> \
+        --outfile model-q8_0.gguf \
+        --outtype q8_0
 
-    // Clean up AMReX
-    amrex::Finalize();
-}
+This produces the file `model-q8_0.gguf`, which will be used by Ollama.
 
-This code initializes AMReX, creates a MultiFab for a scalar field `A` on a given BoxArray `ba`, sets 
-initial values for `A`, and writes a plotfile `output.pots` with the scalar field data. 
-The plotfile format is Potsdam format (`.pots`).
-```
+---
+
+## 3. Create a Modelfile
+
+Create a `Modelfile` (see example in this repository).
+
+In the `FROM` line, point to the GGUF file generated in Step 2:
+
+    FROM <path-to-model-q8_0.gguf>
+
+You may optionally add system prompts or parameters as needed.
+
+---
+
+## 4. Install and configure Ollama
+
+Run the Ollama install script:
+
+    sh get_ollama.sh
+
+Add the following lines to `~/.bash_profile`:
+
+    alias ollama=<path-to-ollama>/bin/ollama
+    export OLLAMA_MODELS=<path-in-scratch-for-ollama-model-storage>
+
+Reload the profile so the changes take effect:
+
+    source ~/.bash_profile
+
+This ensures Ollama stores all models in scratch rather than `$HOME`.
+
+---
+
+## 5. Get an interactive node and start the LLM runtime server
+
+Request an interactive GPU node:
+
+    salloc --nodes 1 \
+           --qos interactive \
+           --time 04:00:00 \
+           --constraint gpu \
+           --gpus 1 \
+           --account=<account-id>
+
+Once on the node, initialize the environment and start the Ollama server:
+
+    source ~/.bash_profile
+    ollama serve &
+
+After the server finishes initializing, press **Enter** to return to the command prompt.
+
+---
+
+## 6. Load the model into Ollama
+
+Create the Ollama model using the `Modelfile` from Step 3:
+
+    ollama create my-ollama-model -f <path-to-modelfile-in-Step3>
+
+This copies the GGUF model into Ollama’s model store.
+
+---
+
+## 7. Run the model and perform inference
+
+Start an interactive inference session:
+
+    ollama run my-ollama-model
+
+You can now interact with the model via the command line.
+
+---
+
