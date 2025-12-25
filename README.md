@@ -1,6 +1,6 @@
-# Inference and fine-tuning of LLMs on Linux machines
+# AI4HPC using LLMs on Linux machines
 This repository is aimed at detailing the process of setting up large language models (LLM) 
-on Linux machines and performing inference, domain adaptive pre-training (DAPT), and fine-tuning. 
+on Linux machines and performing inference, RAG, Agentic AI, domain adaptive pre-training (DAPT), and fine-tuning. 
 
 # Environment Setup on Linux
 
