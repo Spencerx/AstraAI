@@ -1,8 +1,9 @@
-# Running a Quantized LLM with llama.cpp and Ollama on HPC
+# Installing and building tools 
 
 This document describes the end-to-end workflow to:
 - Get and build `llama.cpp`
 - Get ollama
+- Get aider (agent)
 
 ---
 
