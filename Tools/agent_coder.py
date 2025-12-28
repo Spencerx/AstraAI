@@ -5,7 +5,6 @@ import sys
 import time
 import requests
 import subprocess
-import shutil
 import difflib
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,11 +14,11 @@ from typing import List, Optional
 # CONFIG
 # ============================================================
 
-REPO = "AIModCon/repo-for-agent-testing"   # owner/repo
+REPO = "AIModCon/repo-for-agent-testing"
 POLL_INTERVAL = 10
 AIDER_MODEL = "openai/my-ollama-model"
 STATE_FILE = ".agent_watcher_state"
-PR_NUMBER = None   # None = auto-detect latest open PR
+PR_NUMBER = None
 
 # ============================================================
 # AUTH
@@ -72,7 +71,7 @@ class ConversationComment:
     created_at: datetime
     body: str
     author: str
-    source: str   # issue | review | submission
+    source: str
 
 def parse_ts(ts: str) -> datetime:
     return datetime.fromisoformat(ts.replace("Z", "+00:00"))
@@ -85,11 +84,7 @@ def get_all(url: str) -> List[dict]:
     out = []
     page = 1
     while True:
-        r = requests.get(
-            url,
-            headers=HEADERS,
-            params={"per_page": 100, "page": page},
-        )
+        r = requests.get(url, headers=HEADERS, params={"per_page": 100, "page": page})
         r.raise_for_status()
         batch = r.json()
         if not batch:
@@ -100,11 +95,8 @@ def get_all(url: str) -> List[dict]:
 
 def get_latest_open_pr() -> Optional[int]:
     url = f"{GITHUB_API}/repos/{REPO}/pulls"
-    r = requests.get(
-        url,
-        headers=HEADERS,
-        params={"state": "open", "sort": "created", "direction": "desc"},
-    )
+    r = requests.get(url, headers=HEADERS,
+                     params={"state": "open", "sort": "created", "direction": "desc"})
     r.raise_for_status()
     prs = r.json()
     return prs[0]["number"] if prs else None
@@ -116,7 +108,6 @@ def get_latest_open_pr() -> Optional[int]:
 def collect_conversation(pr: int) -> List[ConversationComment]:
     comments: List[ConversationComment] = []
 
-    # Issue comments
     for c in get_all(f"{GITHUB_API}/repos/{REPO}/issues/{pr}/comments"):
         comments.append(
             ConversationComment(
@@ -127,8 +118,6 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
                 source="issue",
             )
         )
-
-    # Review inline comments
     for c in get_all(f"{GITHUB_API}/repos/{REPO}/pulls/{pr}/comments"):
         comments.append(
             ConversationComment(
@@ -139,8 +128,6 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
                 source="review",
             )
         )
-
-    # Review submissions
     for r in get_all(f"{GITHUB_API}/repos/{REPO}/pulls/{pr}/reviews"):
         if not r.get("body"):
             continue
@@ -153,7 +140,6 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
                 source="submission",
             )
         )
-
     return comments
 
 # ============================================================
@@ -162,23 +148,15 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
 
 def extract_agent_instruction(body: str) -> Optional[str]:
     lines = body.splitlines()
-    if not lines:
-        return None
-    if not lines[0].strip().lower().startswith("/agent-coder"):
+    if not lines or not lines[0].strip().lower().startswith("/agent-coder"):
         return None
     return "\n".join(lines[1:]).strip() or "(no instruction)"
 
-def find_latest_comment(
-    comments: List[ConversationComment],
-    include_agent_posts: bool = True
-) -> Optional[ConversationComment]:
+def find_latest_comment(comments: List[ConversationComment], include_agent_posts: bool = True) -> Optional[ConversationComment]:
     if include_agent_posts:
         candidates = [c for c in comments if c.uid not in SEEN]
     else:
-        candidates = [
-            c for c in comments
-            if c.uid not in SEEN and extract_agent_instruction(c.body)
-        ]
+        candidates = [c for c in comments if c.uid not in SEEN and extract_agent_instruction(c.body)]
     return max(candidates, key=lambda c: c.created_at) if candidates else None
 
 # ============================================================
@@ -203,52 +181,65 @@ RULES:
 
 def run_aider():
     log("Running aider...")
-    subprocess.run(
-        [
-            "aider",
-            "--model", AIDER_MODEL,
-            "--message-file", "aider_prompt.txt",
-            "--yes",
-            "--no-auto-commit",
-        ],
-        check=True,
-    )
+    subprocess.run([
+        "aider",
+        "--model", AIDER_MODEL,
+        "--message-file", "aider_prompt.txt",
+        "--yes",
+    ], check=True)
 
 # ============================================================
-# HELPER: APPLY CONFLICT MARKERS TO FILES
+# APPLY CONFLICT MARKERS IN MEMORY
 # ============================================================
 
-def apply_conflict_markers(file_path: str):
-    backup_path = file_path + ".orig"
-    if not os.path.exists(backup_path):
-        return
-
-    with open(backup_path) as f:
-        original_lines = f.readlines()
+def apply_conflict_markers_in_memory(file_path: str, original_lines: List[str]):
     with open(file_path) as f:
         modified_lines = f.readlines()
 
-    matcher = difflib.SequenceMatcher(None, original_lines, modified_lines)
-    merged_lines = []
+    # Normalize whitespace to avoid trivial mismatches
+    original_lines = [l.rstrip() + "\n" for l in original_lines]
+    modified_lines = [l.rstrip() + "\n" for l in modified_lines]
 
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag == "equal":
-            merged_lines.extend(original_lines[i1:i2])
-        elif tag in ("replace", "insert"):
+    if original_lines == modified_lines:
+        return
+
+    merged_lines = []
+    o_idx, m_idx = 0, 0
+    while o_idx < len(original_lines) or m_idx < len(modified_lines):
+        if o_idx < len(original_lines) and m_idx < len(modified_lines) and original_lines[o_idx] == modified_lines[m_idx]:
+            merged_lines.append(original_lines[o_idx])
+            o_idx += 1
+            m_idx += 1
+        else:
             merged_lines.append("<<<<<<< AGENT CODER\n")
-            merged_lines.extend(modified_lines[j1:j2])
+            while m_idx < len(modified_lines) and (o_idx >= len(original_lines) or modified_lines[m_idx] != original_lines[o_idx]):
+                merged_lines.append(modified_lines[m_idx])
+                m_idx += 1
             merged_lines.append("=======\n")
-            merged_lines.extend(original_lines[i1:i2])
-            merged_lines.append(">>>>>>> ORIGINAL\n")
-        elif tag == "delete":
-            merged_lines.append("<<<<<<< AGENT CODER\n")
-            # nothing in agent version
-            merged_lines.append("=======\n")
-            merged_lines.extend(original_lines[i1:i2])
+            while o_idx < len(original_lines) and (m_idx >= len(modified_lines) or original_lines[o_idx] != modified_lines[m_idx]):
+                merged_lines.append(original_lines[o_idx])
+                o_idx += 1
             merged_lines.append(">>>>>>> ORIGINAL\n")
 
     with open(file_path, "w") as f:
         f.writelines(merged_lines)
+
+# ============================================================
+# HELPER: LINE COUNT FOR MODIFIED FILES
+# ============================================================
+
+def compute_modified_files_line_counts(original_files: dict) -> dict:
+    modified = {}
+    for f, orig_lines in original_files.items():
+        if not os.path.exists(f):
+            continue
+        with open(f) as file:
+            new_lines = file.readlines()
+        count = sum(1 for o, n in zip(orig_lines, new_lines) if o != n)
+        count += abs(len(orig_lines) - len(new_lines))
+        if count > 0:
+            modified[f] = count
+    return modified
 
 # ============================================================
 # GIT HELPERS
@@ -258,27 +249,8 @@ def git_tracked_files() -> List[str]:
     r = subprocess.run(["git", "ls-files"], capture_output=True, text=True)
     return r.stdout.splitlines()
 
-def get_modified_files_line_counts() -> dict:
-    """
-    Returns dict {filename: total_changed_lines} based on git diff.
-    """
-    r = subprocess.run(["git", "diff", "--numstat"], capture_output=True, text=True)
-    modified = {}
-    for line in r.stdout.splitlines():
-        parts = line.split("\t")
-        if len(parts) == 3:
-            added, deleted, fname = parts
-            added, deleted = int(added), int(deleted)
-            if added > 0 or deleted > 0:
-                modified[fname] = added + deleted
-    return modified
-
 def post_comment(pr: int, body: str):
-    requests.post(
-        f"{GITHUB_API}/repos/{REPO}/issues/{pr}/comments",
-        headers=HEADERS,
-        json={"body": body},
-    )
+    requests.post(f"{GITHUB_API}/repos/{REPO}/issues/{pr}/comments", headers=HEADERS, json={"body": body})
 
 # ============================================================
 # MAIN LOOP
@@ -323,10 +295,13 @@ while True:
 
         write_aider_prompt(instruction)
 
-        # Backup tracked files
+        # Capture original contents
         tracked_files = git_tracked_files()
+        original_contents = {}
         for f in tracked_files:
-            shutil.copy2(f, f + ".orig")
+            if os.path.exists(f):
+                with open(f) as file:
+                    original_contents[f] = file.readlines()
 
         try:
             run_aider()
@@ -338,12 +313,11 @@ while True:
             continue
 
         # Apply conflict markers to all tracked files
-        for f in tracked_files:
-            if os.path.exists(f):
-                apply_conflict_markers(f)
+        for f, orig_lines in original_contents.items():
+            apply_conflict_markers_in_memory(f, orig_lines)
 
-        # Get only files that actually changed with line counts
-        modified_files = get_modified_files_line_counts()
+        # Compute line counts for modified files
+        modified_files = compute_modified_files_line_counts(original_contents)
 
         if not modified_files:
             post_comment(pr, "⚠️ Agent coder ran but made no changes.")
@@ -361,3 +335,4 @@ while True:
 
     log("Processing complete, waiting for next comment...")
     time.sleep(POLL_INTERVAL)
+
