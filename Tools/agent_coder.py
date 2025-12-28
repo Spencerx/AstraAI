@@ -5,6 +5,8 @@ import sys
 import time
 import requests
 import subprocess
+import shutil
+import difflib
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
@@ -114,7 +116,7 @@ def get_latest_open_pr() -> Optional[int]:
 def collect_conversation(pr: int) -> List[ConversationComment]:
     comments: List[ConversationComment] = []
 
-    # Issue comments (Conversation tab, includes agent posts)
+    # Issue comments
     for c in get_all(f"{GITHUB_API}/repos/{REPO}/issues/{pr}/comments"):
         comments.append(
             ConversationComment(
@@ -212,13 +214,64 @@ def run_aider():
         check=True,
     )
 
-def git_diff_stat() -> str:
-    r = subprocess.run(
-        ["git", "diff", "--stat"],
-        capture_output=True,
-        text=True,
-    )
-    return r.stdout.strip()
+# ============================================================
+# HELPER: APPLY CONFLICT MARKERS TO FILES
+# ============================================================
+
+def apply_conflict_markers(file_path: str):
+    backup_path = file_path + ".orig"
+    if not os.path.exists(backup_path):
+        return
+
+    with open(backup_path) as f:
+        original_lines = f.readlines()
+    with open(file_path) as f:
+        modified_lines = f.readlines()
+
+    matcher = difflib.SequenceMatcher(None, original_lines, modified_lines)
+    merged_lines = []
+
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "equal":
+            merged_lines.extend(original_lines[i1:i2])
+        elif tag in ("replace", "insert"):
+            merged_lines.append("<<<<<<< AGENT CODER\n")
+            merged_lines.extend(modified_lines[j1:j2])
+            merged_lines.append("=======\n")
+            merged_lines.extend(original_lines[i1:i2])
+            merged_lines.append(">>>>>>> ORIGINAL\n")
+        elif tag == "delete":
+            merged_lines.append("<<<<<<< AGENT CODER\n")
+            # nothing in agent version
+            merged_lines.append("=======\n")
+            merged_lines.extend(original_lines[i1:i2])
+            merged_lines.append(">>>>>>> ORIGINAL\n")
+
+    with open(file_path, "w") as f:
+        f.writelines(merged_lines)
+
+# ============================================================
+# GIT HELPERS
+# ============================================================
+
+def git_tracked_files() -> List[str]:
+    r = subprocess.run(["git", "ls-files"], capture_output=True, text=True)
+    return r.stdout.splitlines()
+
+def get_modified_files_line_counts() -> dict:
+    """
+    Returns dict {filename: total_changed_lines} based on git diff.
+    """
+    r = subprocess.run(["git", "diff", "--numstat"], capture_output=True, text=True)
+    modified = {}
+    for line in r.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) == 3:
+            added, deleted, fname = parts
+            added, deleted = int(added), int(deleted)
+            if added > 0 or deleted > 0:
+                modified[fname] = added + deleted
+    return modified
 
 def post_comment(pr: int, body: str):
     requests.post(
@@ -234,11 +287,10 @@ def post_comment(pr: int, body: str):
 log("Agent watcher started")
 
 while True:
-    # At the very start of the while True loop
     if os.path.exists(STATE_FILE):
         os.remove(STATE_FILE)
+    SEEN = set()
 
-    SEEN = set()  # reset seen
     pr = PR_NUMBER or get_latest_open_pr()
     if not pr:
         log("No open PRs")
@@ -246,7 +298,6 @@ while True:
         continue
 
     log(f"Watching PR #{pr}")
-
     comments = collect_conversation(pr)
     latest = find_latest_comment(comments, include_agent_posts=True)
 
@@ -255,9 +306,6 @@ while True:
         time.sleep(POLL_INTERVAL)
         continue
 
-    # --------------------------------------------------------
-    # DEBUG: PRINT EXACT COMMENT SELECTED
-    # --------------------------------------------------------
     log("===== LATEST COMMENT SELECTED =====")
     log(f"UID        : {latest.uid}")
     log(f"Author     : {latest.author}")
@@ -268,13 +316,17 @@ while True:
     print(latest.body, flush=True)
     log("================================================")
 
-    # Only run aider if this is a /agent-coder command
     instruction = extract_agent_instruction(latest.body)
     if instruction:
         subprocess.run(["git", "fetch", "origin"], stdout=subprocess.DEVNULL)
         subprocess.run(["git", "pull"], stdout=subprocess.DEVNULL)
 
         write_aider_prompt(instruction)
+
+        # Backup tracked files
+        tracked_files = git_tracked_files()
+        for f in tracked_files:
+            shutil.copy2(f, f + ".orig")
 
         try:
             run_aider()
@@ -285,18 +337,25 @@ while True:
             time.sleep(POLL_INTERVAL)
             continue
 
-        diff = git_diff_stat()
-        if not diff:
+        # Apply conflict markers to all tracked files
+        for f in tracked_files:
+            if os.path.exists(f):
+                apply_conflict_markers(f)
+
+        # Get only files that actually changed with line counts
+        modified_files = get_modified_files_line_counts()
+
+        if not modified_files:
             post_comment(pr, "⚠️ Agent coder ran but made no changes.")
         else:
+            summary_lines = [f"- {fname}: {lines} lines changed" for fname, lines in modified_files.items()]
             post_comment(
                 pr,
                 "🤖 **Agent coder completed**\n\n"
-                "Modified files:\n"
-                f"```\n{diff}\n```"
+                "Modified files with conflict-style markers and line counts:\n" +
+                "\n".join(summary_lines)
             )
 
-    # Mark the comment as processed
     SEEN.add(latest.uid)
     save_state()
 
