@@ -27,7 +27,7 @@ This produces the file `model-q8_0.gguf`, which will be used by Ollama.
 
 ## 2. Create a modelfile
 
-Create a `modelfile_for_ollama` (see example in this repository).
+Create a `modelfile_for_ollama` (see example in this directory).
 
 In the `FROM` line, point to the GGUF file generated in Step 2:
 
