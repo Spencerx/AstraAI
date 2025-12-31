@@ -26,6 +26,7 @@ Request an interactive GPU node:
 Once on the node, initialize the environment and start the Ollama server:
 
     source ~/.bash_profile
+    source <path-to-modcon-env>/bin/activate
     ollama serve &
 
 After the server finishes initializing, press **Enter** to return to the command prompt.
