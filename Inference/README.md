@@ -36,7 +36,7 @@ After the server finishes initializing, press **Enter** to return to the command
 
 Create the Ollama model using the `modelfile_for_ollama` from Step 2 in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles)
 
-    ollama create my-ollama-model -f <path-to-modelfile-in-Step3>
+    ollama create my-ollama-model -f <path-to-modelfile-for-ollama>
 
 This copies the GGUF model into Ollama’s model store.
 
