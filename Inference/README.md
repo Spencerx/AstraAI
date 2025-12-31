@@ -34,7 +34,7 @@ After the server finishes initializing, press **Enter** to return to the command
 
 ## 2. Load the model into Ollama
 
-Create the Ollama model using the `Modelfile` from Step 2 in [ModelFiles README.md](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles)
+Create the Ollama model using the `modelfile_for_ollama` from Step 2 in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles)
 
     ollama create my-ollama-model -f <path-to-modelfile-in-Step3>
 
