@@ -72,7 +72,7 @@ huggingface-cli login
 Enter the token to login
 
 # How to do inference
-[See the README.md in the Inference directory.](https://github.com/AIModCon/modcon-hpc/tree/main/Inference)
+[See Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
 # How to do fine tuning
 [See the README.md in the FineTuning directory.](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
