@@ -1,3 +1,12 @@
+# Make the LLM ollama-ready
+
+## Pre-requisite:
+1. The llama.cpp should be installed (Step 1 in [Install and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools))
+
+- The ollama LLM runtime requires the model to be in a .gguf format and 
+- the modefile file. 
+Here are the steps 
+
 ## 1. Activate the ModCon environment and convert the Hugging Face model to GGUF
 
 Activate the ModCon Python environment:
@@ -15,9 +24,9 @@ This produces the file `model-q8_0.gguf`, which will be used by Ollama.
 
 ---
 
-## 2. Create a Modelfile
+## 2. Create a modelfile
 
-Create a `Modelfile` (see example in this repository).
+Create a `modelfile_for_ollama` (see example in this repository).
 
 In the `FROM` line, point to the GGUF file generated in Step 2:
 
