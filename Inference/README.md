@@ -1,6 +1,8 @@
-# Running a Quantized LLM with llama.cpp and Ollama on HPC
+# Inference with LLM on Linux machine 
 
-This document describes the end-to-end workflow to:
+Make sure to have done the [environment setup](https://github.com/AIModCon/modcon-hpc/tree/main?tab=readme-ov-file#environment-setup-on-linux)
+
+This describes the end-to-end workflow to:
 - Convert a Hugging Face model to quantized GGUF format
 - Run inference on an interactive compute node
 
