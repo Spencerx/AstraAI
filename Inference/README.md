@@ -3,7 +3,7 @@
 ## Pre-requisites: 
 1. The [environment setup](https://github.com/AIModCon/modcon-hpc/tree/main?tab=readme-ov-file#environment-setup-on-linux) should be complete.
 
-2. The llama.cpp and ollama should be installed (Steps 1 and 2 in [Install and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools)
+2. The llama.cpp and ollama should be installed (Steps 1 and 2 in [Install and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools))
 
 This describes the end-to-end workflow to:
 - Convert a Hugging Face model to quantized GGUF format
