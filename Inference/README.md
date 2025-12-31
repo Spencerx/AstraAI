@@ -5,7 +5,7 @@
 
 2. The llama.cpp and ollama should be installed (Steps 1 and 2 in [Install and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools))
 
-3. The model file should be ready (All steps in [Make the LLM ollama-ready]()
+3. The model file should be ready (All steps in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles#make-the-llm-ollama-ready))
 
 Here are the steps to:
 - Run inference on an interactive compute node
