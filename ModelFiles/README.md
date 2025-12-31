@@ -3,9 +3,9 @@
 ## Pre-requisite:
 1. The llama.cpp should be installed (Step 1 in [Install and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools))
 
+Here are the steps 
 - The ollama LLM runtime requires the model to be in a .gguf format and 
 - the modefile file. 
-Here are the steps 
 
 ## 1. Activate the ModCon environment and convert the Hugging Face model to GGUF
 
