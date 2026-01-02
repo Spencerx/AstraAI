@@ -25,7 +25,7 @@ aider --model openai/my-ollama-model
 Now, you get the agent prompt, much similar to the LLM chatbot. 
 
 ## GitHub PR agent
-To use the agent from GitHub conversations (comments in the PR), there is a [python script in the Tools directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
+To use the agent from GitHub conversations (ie. the comments in the PR), there is a [python script in the Tools directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
 of this repo that will help you do that. Follow the steps below.
 ```
 sh run_interactive_GPU.sh
@@ -38,6 +38,5 @@ ollama serve&
 ```
 python3 <path-to-pr_agent.py>
 ```
-
-Now, you can go into a GitHub PR, and post comments. The comments have to start with one of  the tags `agent-build` or `agent-coder` for build and coding assistance, respectively.
+This script runs periodically every 5 seconds and looks for the latest comment in the latest PR. It looks if the comments begin with either of the tags -- `agent-build` or `agent-coder`. You can go into a GitHub PR, and post comments. The comments have to start with one of  the tags `agent-build` or `agent-coder` for build and coding assistance, respectively.
 ```
