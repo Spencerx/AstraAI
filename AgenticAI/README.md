@@ -3,7 +3,7 @@ This project uses [**aider**](https://github.com/Aider-AI/aider) as an AI coding
 1. The agent works based on git. So, the local code that you are working with should be on GitHub (the aider agent looks for `.git` files).
 2. The agent can modify files on disk (unlike the inference with LLM which gives its response only on the terminal). When you ask the agent to write code, you can prompt it as 
 ```
-Add a function in src/compute.cpp which takes 2 real numbers as arguments and finds their sum. 
+Add a function in the file src/compute.cpp which takes 2 real numbers as arguments and finds their sum. 
 ```
 This will modify the file with the function.
 
