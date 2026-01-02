@@ -74,6 +74,9 @@ Enter the token to login
 # How to do inference
 [See Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
+# How to do agentic coding?
+[See Agent based coding](https://github.com/AIModCon/modcon-hpc/tree/main/AgenticAI#agent-based-coding)
+
 # How to do fine tuning
 [See the README.md in the FineTuning directory.](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
 
