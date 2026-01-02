@@ -20,7 +20,7 @@ Note: This step currently works out of the box only on Perlmutter. The `llama.cp
 ---
 
 ## 2. Install and configure Ollama
-Ollama is a LLM runtime -- a local engine that runs language models (like GPT) on your machine or server so you can send prompts and get completions, without going through the cloud. It keeps the LLM loaded so it very much acts like a web based chatbot, but on your terminal.
+Ollama is a LLM runtime -- a local engine that runs language models (like GPT) on your machine or server so you can send prompts and get completions, without going through the cloud. It keeps the LLM loaded, and hence it acts like a web based chatbot, but on the terminal.
 
 Run the Ollama install script:
 
