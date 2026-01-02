@@ -41,7 +41,7 @@ This ensures Ollama stores all models in scratch rather than `$HOME`.
 
 ## 3. Install Aider agent 
 
-This project uses **aider** as an AI coding assistant, backed by a **locally hosted LLM** served via **Ollama** using an OpenAI-compatible API.
+This project uses [**aider**](https://github.com/Aider-AI/aider) as an AI coding assistant, backed by a **locally hosted LLM** served via **Ollama** using an OpenAI-compatible API.
 
 Install aider using pip:
 
