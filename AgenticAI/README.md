@@ -25,7 +25,7 @@ aider --model openai/my-ollama-model
 Now, you get the agent prompt, much similar to the LLM chatbot. 
 
 ## GitHub PR agent
-To use the agent from GitHub conversations (comments in the PR), there is a [python script in the `Tools` directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
+To use the agent from GitHub conversations (comments in the PR), there is a [python script in the Tools directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
 of this repo that will help you do that. Follow the steps below.
 ```
 sh run_interactive_GPU.sh
