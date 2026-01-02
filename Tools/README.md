@@ -15,7 +15,7 @@ Run the provided script to clone and build `llama.cpp`:
     sh get_llama_cpp.sh
 
 This typically takes about 10 minutes.  
-Note: The `CMakeLists.txt` is tailored to Perlmutter (NERSC). 
+Note: The `llama.cpp/ggml/src/ggml_cuda/CMakeLists.txt` is tailored to Perlmutter (NERSC). 
 
 ---
 
