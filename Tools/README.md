@@ -9,12 +9,13 @@ This document describes the end-to-end workflow to:
 
 ## 1. Get llama.cpp in the current directory
 This is a framework that is required to convert the LLM to a specific format that is needed by the 
-LLM runtime (See Step 2 below).
+LLM runtime (See Step 2 below). 
 Run the provided script to clone and build `llama.cpp`:
 
     sh get_llama_cpp.sh
 
-This typically takes about **10 minutes**.
+This typically takes about 10 minutes.  
+Note: The `CMakeLists.txt` is tailored to Perlmutter (NERSC). 
 
 ---
 
