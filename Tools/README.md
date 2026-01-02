@@ -19,9 +19,7 @@ This typically takes about **10 minutes**.
 ---
 
 ## 2. Install and configure Ollama
-Ollama is a LLM runtime - It’s a local engine that runs language models (like GPT) on your machine or   
-server so you can send prompts and get completions, without going through the cloud. It keeps the LLM loaded  
-so it very much acts like a web based chatbot, but on your terminal.
+Ollama is a LLM runtime - It’s a local engine that runs language models (like GPT) on your machine or server so you can send prompts and get completions, without going through the cloud. It keeps the LLM loaded so it very much acts like a web based chatbot, but on your terminal.
 
 Run the Ollama install script:
 
