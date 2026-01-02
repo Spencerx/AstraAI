@@ -13,7 +13,7 @@ This will modify the file with the function.
 2. All steps in [Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 3. All steps in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles#make-the-llm-ollama-ready)
 
-## 1. Aider agent
+## 1. To use the Aider agent via terminal
 To use the agent for coding tasks, follow the steps below
 ```
 sh run_interactive_GPU.sh
@@ -24,7 +24,7 @@ aider --model openai/my-ollama-model
 ```
 Now, you get the agent prompt, much similar to the LLM chatbot. 
 
-## 2. GitHub PR agent
+## 2. To use the Aider agent via GitHub PR comments
 To use the agent from GitHub conversations (ie. the comments in the PR), there is a [python script in the Tools directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
 of this repo that will help you do that. Follow the steps below.
 ```
