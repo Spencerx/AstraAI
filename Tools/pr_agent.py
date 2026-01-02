@@ -426,8 +426,6 @@ while True:
                 "\n".join(summary_lines)
             )
 
-        SEEN.add(latest.uid)
-        save_state()
         time.sleep(POLL_INTERVAL)
         continue
 
