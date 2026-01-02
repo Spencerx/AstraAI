@@ -2,7 +2,7 @@
 This repository is aimed at developing a framework using large language models (LLM) 
 on Linux machines and performing inference, RAG, Agentic AI, domain adaptive pre-training (DAPT), and fine-tuning. 
 
-# Environment Setup on Linux
+# 1. Environment Setup on Linux
 
 This README sets up a Python environment for running LLM models on a Linux filesystem. 
 The Perlmutter scratch is chosen to do the installation.
@@ -71,13 +71,13 @@ huggingface-cli login
 ```
 Enter the token to login
 
-# How to do inference
+# 2. How to do inference
 [See Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
-# How to do agentic coding?
+# 3. How to do agentic coding?
 [See Agent based coding](https://github.com/AIModCon/modcon-hpc/tree/main/AgenticAI#agent-based-coding)
 
-# How to do fine tuning
+# 4. How to do fine tuning
 [See the README.md in the FineTuning directory.](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
 
 
