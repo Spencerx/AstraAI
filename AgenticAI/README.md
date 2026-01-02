@@ -7,7 +7,6 @@ Add a function in src/compute.cpp which takes 2 real numbers as arguments and fi
 ```
 This will modify the file with the function.
 
-
 ## Pre-requisite
 1. All steps in [Installing and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools)
 2. All steps in [Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
