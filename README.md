@@ -71,13 +71,13 @@ huggingface-cli login
 ```
 Enter the token to login
 
-# 2. How to do inference
+# 2. How to do inference?
 [See Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
 # 3. How to do agentic coding?
 [See Agent based coding](https://github.com/AIModCon/modcon-hpc/tree/main/AgenticAI#agent-based-coding)
 
-# 4. How to do fine tuning
+# 4. How to do fine tuning?
 [See the README.md in the FineTuning directory.](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
 
 
