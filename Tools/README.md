@@ -8,7 +8,8 @@ This document describes the end-to-end workflow to:
 ---
 
 ## 1. Get llama.cpp in the current directory
-
+This is a framework that is required to convert the LLM to a specific format that is needed by the 
+LLM runtime (See Step 2 below).
 Run the provided script to clone and build `llama.cpp`:
 
     sh get_llama_cpp.sh
@@ -18,6 +19,9 @@ This typically takes about **10 minutes**.
 ---
 
 ## 2. Install and configure Ollama
+Ollama is a LLM runtime - It’s a local engine that runs language models (like GPT) on your machine or   
+server so you can send prompts and get completions, without going through the cloud. It keeps the LLM loaded  
+so it very much acts like a web based chatbot, but on your terminal.
 
 Run the Ollama install script:
 
