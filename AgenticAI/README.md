@@ -37,6 +37,7 @@ ollama serve&
 `cd` into the code directory you are working with (has to be a git repo), and run the python script from there 
 ```
 python3 <path-to-pr_agent.py>
+```
 
 Now, you can go into a GitHub PR, and post comments. The comments have to start with one of  the tags `agent-build` or `agent-coder` for build and coding assistance, respectively.
 ```
