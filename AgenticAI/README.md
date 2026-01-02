@@ -14,7 +14,7 @@ This will modify the file with the function.
 3. All steps in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles#make-the-llm-ollama-ready)
 
 ## Aider agent
-To do agentic for coding tasks. 
+To use the agent for coding tasks, follow the steps below
 ```
 sh run_interactive_GPU.sh
 source ~/.bash_profile
@@ -22,9 +22,7 @@ source <path-to-modcon-env>/bin/activate
 ollama serve&
 aider --model openai/my-ollama-model
 ```
-
-aider --model openai/my-ollama-model
-
+Now, you get the agent prompt, much similar to the LLM chatbot. 
 
 ## PR agent
 To use the agent from GitHub conversations (comments in the PR), there is a [python script in the `Tools` directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
