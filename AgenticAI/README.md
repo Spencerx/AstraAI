@@ -39,4 +39,3 @@ ollama serve&
 python3 <path-to-pr_agent.py>
 ```
 This script runs periodically every 5 seconds and looks for the latest comment in the latest PR. It looks if the comments begin with either of the tags -- `agent-build` or `agent-coder`. You can go into a GitHub PR, and post comments. The comments have to start with one of  the tags `agent-build` or `agent-coder` for build and coding assistance, respectively.
-```
