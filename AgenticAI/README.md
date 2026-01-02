@@ -15,10 +15,10 @@ To use the agent from GitHub conversations (comments in the PR), there is a [pyt
 of this repo that will help you do that. Follow the steps below.
 
 ```
-sh run_interactive_GPU.sh 
-source ~/.bash_profile 
-source <path-to-modcon-env>/bin/activate 
-ollama serve&  
+sh run_interactive_GPU.sh
+source ~/.bash_profile
+source <path-to-modcon-env>/bin/activate
+ollama serve&
 ```
 Go into the repo of the code you are working with and run the python script from there 
 ```
