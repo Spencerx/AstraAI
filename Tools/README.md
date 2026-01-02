@@ -1,6 +1,6 @@
 # Installing and building tools 
 
-This document describes the end-to-end workflow to:
+This document describes how to:
 - Get and build `llama.cpp`
 - Get ollama
 - Get aider (agent)
