@@ -25,7 +25,7 @@ PR_NUMBER = None
 # ============================================================
 
 AIDER_MODEL = "openai/my-ollama-model"
-STATE_FILE_AGENT = ".pr_agent_watcher_state"
+STATE_FILE_AGENT = ".pr_agent_state"
 
 # ============================================================
 # AUTH
