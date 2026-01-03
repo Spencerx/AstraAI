@@ -15,7 +15,7 @@ This will modify the file with the function.
 ## 1. To use the Aider agent via terminal
 To use the agent for coding tasks, follow the steps below
 ```
-sh run_interactive_GPU.sh
+salloc --nodes 1 --qos interactive --time 04:00:00 --constraint gpu --gpus 1 --account=<account-id>
 source ~/.bash_profile
 source <path-to-modcon-env>/bin/activate
 ollama serve&
@@ -27,7 +27,7 @@ Now, you get the agent prompt, much similar to the LLM chatbot.
 To use the agent from GitHub conversations (ie. the comments in the PR), there is a [python script in the Tools directory](https://github.com/AIModCon/modcon-hpc/blob/main/Tools/pr_agent.py) 
 of this repo that will help you do that. Follow the steps below.
 ```
-sh run_interactive_GPU.sh
+salloc --nodes 1 --qos interactive --time 04:00:00 --constraint gpu --gpus 1 --account=<account-id>
 source ~/.bash_profile
 source <path-to-modcon-env>/bin/activate
 ollama serve&
