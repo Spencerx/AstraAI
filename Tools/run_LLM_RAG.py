@@ -124,6 +124,10 @@ while True:
     if query.lower() == "exit":
         break
 
+    if not query:
+        print("Please enter a non-empty question.")
+        continue
+
     # Generate query embedding
     query_embedding = get_embedding(query)
     if query_embedding is None:
@@ -144,9 +148,10 @@ Context:
 Question:
 {query}
 
-Answer:
 """
-
+    print("BIG PROMPT BEGINS.................\n");
+    print(prompt)
+    print("BIG PROMPT ENDS.................\n");
     # Send prompt to Ollama and print answer
     answer = ask_ollama(prompt)
     print("\n--- Answer ---\n")
