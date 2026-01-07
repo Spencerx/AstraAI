@@ -17,14 +17,22 @@ ollama serve&
 
 2. Extract the RAG metadata for the source code and write the `.json` file
 ```
-python3 <path-to-modcon-hpc/Tools/extract_RAG_metadata.py> --code-dir=<path-to-code-source-dir> --out-dir=<output-dir-for-json-file> --embed-model=nomic-embed-text
+python3 <path-to-modcon-hpc/Tools/extract_RAG_metadata.py> \
+--code-dir=<path-to-code-source-dir> \
+--out-dir=<output-dir-for-json-file> \
+--embed-model=nomic-embed-text
 ```
 Note: Ollama has the `nomic-embed-text` model within it, so the above should work.
 
 3. Run the python script for RAG. Running this script will give a prompt at which the user can give code specific queries.
 
 ```
-python3 <path-to-modcon-hpc/Tools/run_LLM_RAG.py> --llm-model=<path-to-my-ollama-model> --embed-model=nomic-embed-text --rag-dir=<path-to-dir-with-json-file> --top-k=5 --ollama-bin=<path-to-ollama-binary>
+python3 <path-to-modcon-hpc/Tools/run_LLM_RAG.py> \
+--llm-model=<path-to-my-ollama-model> \
+--embed-model=nomic-embed-text \
+--rag-dir=<path-to-dir-with-json-file> \
+--top-k=5 \
+--ollama-bin=<path-to-ollama-binary>
 ```
 The `--llm-model` is what was created using [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#2-load-the-model-into-ollama)  
 The `--ollama-bin` is the same as in [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#2-install-and-configure-ollama)
