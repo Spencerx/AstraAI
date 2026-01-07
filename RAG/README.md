@@ -14,7 +14,7 @@ This document describes how to perform retrieval augmented generation (RAG) with
 ```
 salloc --nodes 1 --qos interactive --time 04:00:00 --constraint gpu --gpus 1 --account=<account-id>
 source ~/.bash_profile
-source <modcon-env>/bin/activate 
+source <path-to-modcon-env>/bin/activate 
 ollama serve&
 ```
 
