@@ -7,6 +7,8 @@ This document describes how to perform retrieval augmented generation (RAG) with
 2. All steps in [Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 3. All steps in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles#make-the-llm-ollama-ready)
 
+## Inference with LLM + RAG
+
 1. Get an interacitve node and start the ollama server
 ```
 salloc --nodes 1 --qos interactive --time 04:00:00 --constraint gpu --gpus 1 --account=<account-id>
