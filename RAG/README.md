@@ -6,7 +6,7 @@ This document describes how to perform retrieval augmented generation (RAG) with
 1. Steps 1 and 2 in [Installing and building tools](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#installing-and-building-tools)
 2. All steps in [Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 3. All steps in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles#make-the-llm-ollama-ready)
-4. The source code should be commented sufficiently with functions, features and any other info as deemed appropriate
+4. The source code should be commented sufficiently with metadata -- functions, features and any other info as deemed appropriate. An example of the metadata is shown in a cpp file in this folder.
 
 ## Inference with LLM + RAG
 
@@ -14,7 +14,7 @@ This document describes how to perform retrieval augmented generation (RAG) with
 ```
 salloc --nodes 1 --qos interactive --time 04:00:00 --constraint gpu --gpus 1 --account=<account-id>
 source ~/.bash_profile
-source $SCRATCH/mistral-env/bin/activate 
+source <modcon-env>/bin/activate 
 ollama serve&
 ```
 
