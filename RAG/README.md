@@ -30,7 +30,7 @@ Note: Ollama has the `nomic-embed-text` model within it, so the above should wor
 3. Run the python script for RAG. Running this script will give a prompt at which the user can give code specific queries.
 
 ```
-python3 <path-to-modcon-hpc/Tools/run_LLM_RAG.py> \
+python3 <path-to-modcon-hpc>/Tools/Coder_LLM_RAG.py \
 --llm-model=<path-to-my-ollama-model> \
 --embed-model=nomic-embed-text \
 --rag-dir=<path-to-dir-with-json-file> \
@@ -39,3 +39,4 @@ python3 <path-to-modcon-hpc/Tools/run_LLM_RAG.py> \
 ```
 The `--llm-model` is what was created using [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#2-load-the-model-into-ollama)  
 The `--ollama-bin` is the same as in [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#2-install-and-configure-ollama)
+The `--rag-dir` is the directory that contains all the json files in generated in Step 2 above.
