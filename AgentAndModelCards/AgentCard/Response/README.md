@@ -11,8 +11,8 @@ license: BSD-3-Clause
 license_name: BSD 3-Clause License
 license_link: LICENSE
 
-base_model: https://ollama.ai/library
-new_version: meta-llama/Llama-3.1-8B
+base_model: mistral-7b (any model can be used)
+new_version: 
 datasets:
     - AMReX tutorials and example codes (curated)
 metrics:
@@ -22,7 +22,7 @@ metrics:
 
 agent_card:
   name: "AstraAI"
-  description: "An agent that assists with HPC and scientific code development via GitHub PR comments or terminal execution, using LLMs with retrieval and code-structure awareness."
+  description: "An open-source, Copilot-like AI agent for HPC and scientific codebases that integrates large language models with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST)–guided analysis to produce context-aware code suggestions and safely scoped GitHub pull request updates."
   provider:
     organization: "Lawrence Berkeley National Laboratory"
     url: "https://www.lbl.gov"
