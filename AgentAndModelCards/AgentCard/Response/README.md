@@ -126,6 +126,27 @@ Examples of Inputs and Outputs:
 
 ### Tools and permissions
 
+- Tool: Model and embedding repository (Hugging Face Hub)
+  - Purpose: Source large language models and embedding models used by the agent
+  - Inputs: Model identifiers, configuration files, tokenizer artifacts
+  - Outputs: Model weights, tokenizers, embedding models
+  - Side effects: Network access for model download (optional local caching)
+  - Required permissions: Network access (read-only)
+
+- Tool: Model conversion utility (llama.cpp)
+  - Purpose: Convert Hugging Face–format language models into GGUF format compatible with local inference runtimes (e.g., Ollama)
+  - Inputs: Hugging Face model weights, tokenizer files, conversion parameters
+  - Outputs: GGUF-formatted model files
+  - Side effects: Executes local conversion jobs; produces model artifacts on disk
+  - Required permissions: Local execution, filesystem write access
+
+- Tool: Local LLM runtime (Ollama)
+  - Purpose: Natural language understanding and generation
+  - Inputs: Prompts
+  - Outputs: Generated text/code
+  - Side effects: executes local inference
+  - Required permissions: local execution
+
 - Tool: GitHub API
   - Purpose: Read PR comments and post agent responses
   - Inputs: PR metadata, comments
@@ -140,26 +161,7 @@ Examples of Inputs and Outputs:
   - Side effects: writes data
   - Required permissions: filesystem access
 
-- Tool: Local LLM runtime (Ollama)
-  - Purpose: Natural language understanding and generation
-  - Inputs: Prompts
-  - Outputs: Generated text/code
-  - Side effects: executes local inference
-  - Required permissions: local execution
 
-- Tool: Model and embedding repository (Hugging Face Hub)
-  - Purpose: Source large language models and embedding models used by the agent
-  - Inputs: Model identifiers, configuration files, tokenizer artifacts
-  - Outputs: Model weights, tokenizers, embedding models
-  - Side effects: Network access for model download (optional local caching)
-  - Required permissions: Network access (read-only)
-
-- Tool: Model conversion utility (llama.cpp)
-  - Purpose: Convert Hugging Face–format language models into GGUF format compatible with local inference runtimes (e.g., Ollama)
-  - Inputs: Hugging Face model weights, tokenizer files, conversion parameters
-  - Outputs: GGUF-formatted model files
-  - Side effects: Executes local conversion jobs; produces model artifacts on disk
-  - Required permissions: Local execution, filesystem write access
 
 ### Service endpoint and discovery
 
