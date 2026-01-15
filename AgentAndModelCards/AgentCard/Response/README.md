@@ -120,8 +120,8 @@ Examples of Inputs and Outputs:
   **Description**: Supports scaffolding, debugging, and code generation for scientific/HPC software projects.  
   **Tags**: HPC, AMReX, C++, F90, GitHub  
   **Examples**:  
-  - Generate AMReX scaffolding for a new solver  
-  - Analyze and explain a compiler error  
+    - Generate AMReX scaffolding for a new solver  
+    - Analyze and explain a compiler error  
   **Input/Output Modes**: text/plain
 
 ### Tools and permissions
