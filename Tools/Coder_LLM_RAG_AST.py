@@ -5,6 +5,7 @@ import subprocess
 import argparse
 import os
 import sys
+import re
 
 # -------------------------------
 # Command-line arguments
@@ -16,12 +17,16 @@ parser.add_argument("--embed-model", type=str, required=True,
                     help="Ollama embedding model")
 parser.add_argument("--rag-dir", type=str, required=True,
                     help="Directory containing RAG JSON metadata")
+parser.add_argument("--hpc-code-examples-dir", type=str, required=False,  
+                    default=None, help="Directory containing code examples (optional)")
 parser.add_argument("--top-k", type=int, default=3,
                     help="Number of chunks to retrieve")
 parser.add_argument("--min-sim", type=float, default=0.45,
                     help="Minimum cosine similarity threshold")
 parser.add_argument("--ollama-bin", type=str, default="ollama",
                     help="Path to the Ollama executable")
+parser.add_argument("--prompt-file", type=str, required=True,
+                    help="File containing the full user prompt")
 args = parser.parse_args()
 
 MODEL_NAME = args.llm_model
@@ -30,6 +35,7 @@ RAG_DIR = args.rag_dir
 TOP_K = args.top_k
 MIN_SIM = args.min_sim
 OLLAMA_BIN = args.ollama_bin
+PROMPT_FILE = args.prompt_file
 
 # -------------------------------
 # Load RAG metadata
@@ -82,108 +88,96 @@ def retrieve_relevant_chunks(query_embedding, metadata, top_k=TOP_K, min_sim=MIN
             sim = cosine_similarity(query_embedding, emb)
             scored.append((sim, idx, chunk.get("text", "")))
 
+    # Deterministic ordering: similarity DESC, index ASC
     scored.sort(key=lambda x: (-x[0], x[1]))
     filtered = [text for sim, _, text in scored if sim >= min_sim]
     return filtered[:top_k]
 
 # -------------------------------
-# Ollama helpers
+# Ollama helpers (Python 3.6 compatible)
 # -------------------------------
 def run_ollama(prompt, model):
     env = os.environ.copy()
     env["OLLAMA_TEMPERATURE"] = "0"
     env["OLLAMA_TOP_P"] = "1"
     env["OLLAMA_TOP_K"] = "1"
+    env["OLLAMA_LOG"] = "0"  # suppress Ollama logging
 
-    try:
-        proc = subprocess.run(
-            [OLLAMA_BIN, "run", model],
-            input=prompt,
-            capture_output=True,
-            text=True,
-            check=True,
-            env=env
-        )
-        return proc.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"[ERROR] Ollama failed:\n{e.stderr or e.stdout}")
+    proc = subprocess.Popen(
+        [OLLAMA_BIN, "run", model],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        universal_newlines=True
+    )
+    stdout, stderr = proc.communicate(input=prompt)
+    if proc.returncode != 0:
+        print(f"[ERROR] Ollama failed:\n{stderr.strip() or stdout.strip()}")
         return None
+    return stdout.strip()
 
 def get_embedding(text):
     if not text.strip():
         return None
+    proc = subprocess.Popen(
+        [OLLAMA_BIN, "run", EMBED_MODEL],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True
+    )
+    stdout, stderr = proc.communicate(input=text)
+    if proc.returncode != 0:
+        print(f"[ERROR] Ollama embedding failed:\n{stderr.strip() or stdout.strip()}")
+        return None
     try:
-        proc = subprocess.run(
-            [OLLAMA_BIN, "run", EMBED_MODEL],
-            input=text,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return np.array(json.loads(proc.stdout.strip()), dtype=np.float64)
-    except subprocess.CalledProcessError as e:
-        print(f"[ERROR] Ollama embedding failed:\n{e.stderr or e.stdout}")
+        return np.array(json.loads(stdout.strip()), dtype=np.float64)
+    except Exception as e:
+        print(f"[ERROR] Failed to parse embedding: {e}")
         return None
 
 # -------------------------------
-# Intent extraction (filename)
+# Read full prompt from file
 # -------------------------------
-def extract_intent(query):
-    prompt = f"""
-Extract the target output file from the user request.
+if not os.path.exists(PROMPT_FILE):
+    print(f"[ERROR] Prompt file {PROMPT_FILE} not found")
+    sys.exit(1)
 
-Rules:
-- Return JSON only.
-- Include a "filename" field.
-- If the user did not specify a filename, infer a reasonable one.
-- Do not include explanations.
+with open(PROMPT_FILE, "r") as f:
+    user_prompt = f.read().strip()
 
-User request:
-{query}
-"""
-    out = run_ollama(prompt, MODEL_NAME)
-    if out is None:
-        return None
-
-    try:
-        return json.loads(out)
-    except json.JSONDecodeError:
-        print("[ERROR] Failed to parse intent JSON:")
-        print(out)
-        return None
+if not user_prompt:
+    print("[ERROR] Prompt file is empty")
+    sys.exit(1)
 
 # -------------------------------
-# Interactive loop
+# Determine output file from prompt
 # -------------------------------
-print("RAG-based code scaffolding")
-print("Type 'exit' to quit.\n")
+match = re.search(r'(\S+\.(?:cpp|cxx|cc|h|H|hpp))', user_prompt, re.IGNORECASE)
+if match:
+    OUTPUT_FILE = match.group(1)
+    os.makedirs(os.path.dirname(OUTPUT_FILE) or ".", exist_ok=True)
+    print(f"Target file: {OUTPUT_FILE}")
+else:
+    print("[ERROR] Could not determine output filename from prompt. Include filename (e.g., src/main.cpp) in request.")
+    sys.exit(1)
 
-while True:
-    query = input("Enter your request: ").strip()
-    if query.lower() == "exit":
-        break
-    if not query:
-        print("Please enter a non-empty request.")
-        continue
+# -------------------------------
+# Generate code via RAG + LLM
+# -------------------------------
+canonical_query = f"AMReX C++ code generation request: {user_prompt}"
+query_embedding = get_embedding(canonical_query)
+if query_embedding is None:
+    print("[ERROR] Failed to generate embedding")
+    sys.exit(1)
 
-    intent = extract_intent(query)
-    if intent is None or "filename" not in intent:
-        print("[ERROR] Could not determine output filename.")
-        continue
+relevant_chunks = retrieve_relevant_chunks(query_embedding, metadata)
+context = "\n\n".join(relevant_chunks)
 
-    filename = intent["filename"]
-    print(f"Target file: {filename}")
 
-    canonical_query = f"AMReX C++ code generation request: {query}"
-    query_embedding = get_embedding(canonical_query)
-    if query_embedding is None:
-        print("Failed to generate embedding.")
-        continue
 
-    relevant_chunks = retrieve_relevant_chunks(query_embedding, metadata)
-    context = "\n\n".join(relevant_chunks)
-
-    prompt = f"""
+prompt = f"""
 You are an AMReX expert C++ developer.
 
 Using the context below as reference examples and patterns,
@@ -194,23 +188,31 @@ Rules:
 - Follow AMReX best practices shown in the context.
 - Output ONLY valid source code.
 - Do NOT include markdown, explanations, or extra text.
-- The file will be saved as: {filename}
+Rules (must follow):
+- Output ONLY valid C++ source code.
+- Output MUST begin with a valid C++ token (#include, int, using, namespace).
+- Output MUST NOT include markdown, backticks, explanations, or extra text.
+- DO NOT include phrases like "Here is", "Below is", or "This file".
+- The output MUST contain exactly the code that should go in the file.
+- The file can be a .cpp or .h file depending on the user request.
+
 
 Context:
 {context}
 
 User request:
-{query}
+{user_prompt}
 """
 
-    code = run_ollama(prompt, MODEL_NAME)
-    if code is None:
-        print("Code generation failed.")
-        continue
+code = run_ollama(prompt, MODEL_NAME)
+if code is None:
+    print("[ERROR] Code generation failed")
+    sys.exit(1)
 
-    os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
-    with open(filename, "w") as f:
-        f.write(code)
+# -------------------------------
+# Write code to file
+# -------------------------------
+with open(OUTPUT_FILE, "w") as f:
+    f.write(code)
 
-    print(f"[OK] Wrote file: {filename}\n")
-
+print(f"[OK] Wrote file: {OUTPUT_FILE}")
