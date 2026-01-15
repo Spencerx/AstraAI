@@ -25,7 +25,7 @@ agent_card:
   description:  An open-source, Copilot-like AI agent for HPC codebases that integrates LLMs with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST)–guided analysis to produce context-aware code suggestions and safely scoped GitHub PR updates.
   provider:
     organization: "Lawrence Berkeley National Laboratory"
-    url: "https://www.lbl.gov"
+    url: Private GitHub repo now
   version: "0.1.0"
   documentation_url: ""
   protocol_version: "0.1.0"
@@ -49,7 +49,7 @@ authentication:
     - id: "code_assist"
       name: "HPC Code Assistance"
       description: "Assists with code scaffolding, compilation diagnostics, and code generation for scientific/HPC applications."
-      tags: ["HPC", "C++", "AMReX", "GitHub"]
+      tags: ["HPC", "C++", "F90", "AMReX", "GitHub"]
       examples:
         - "@astraai generate an ErrorEst method for this AMReX solver"
         - "@astraai analyze this compilation error"
@@ -99,9 +99,7 @@ Contributors from the AMReX and ModCon communities, including domain scientists 
 
 ## Underlying model(s) (optional)
 
-- Primary model(s): Local LLMs served via Ollama (e.g., LLaMA-family models)
-- If applicable, parent model(s): meta-llama/Llama-3.x
-- Any adapters/quantization/merges: Model-dependent, configured externally
+- Primary model(s): Any LLM downloaded from Hugging Face and served via the Ollama run-time server
 
 ## Inputs and outputs
 
@@ -120,7 +118,7 @@ Examples of Inputs and Outputs:
 - **Skill ID**: code_assist  
   **Name**: HPC Code Assistance  
   **Description**: Supports scaffolding, debugging, and code generation for scientific/HPC software projects.  
-  **Tags**: HPC, AMReX, C++, GitHub  
+  **Tags**: HPC, AMReX, C++, F90, GitHub  
   **Examples**:  
   - Generate AMReX scaffolding for a new solver  
   - Analyze and explain a compiler error  
@@ -148,6 +146,20 @@ Examples of Inputs and Outputs:
   - Outputs: Generated text/code
   - Side effects: executes local inference
   - Required permissions: local execution
+
+- Tool: Model and embedding repository (Hugging Face Hub)
+  - Purpose: Source large language models and embedding models used by the agent
+  - Inputs: Model identifiers, configuration files, tokenizer artifacts
+  - Outputs: Model weights, tokenizers, embedding models
+  - Side effects: Network access for model download (optional local caching)
+  - Required permissions: Network access (read-only)
+
+- Tool: Model conversion utility (llama.cpp)
+  - Purpose: Convert Hugging Face–format language models into GGUF format compatible with local inference runtimes (e.g., Ollama)
+  - Inputs: Hugging Face model weights, tokenizer files, conversion parameters
+  - Outputs: GGUF-formatted model files
+  - Side effects: Executes local conversion jobs; produces model artifacts on disk
+  - Required permissions: Local execution, filesystem write access
 
 ### Service endpoint and discovery
 
