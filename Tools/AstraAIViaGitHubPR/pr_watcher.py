@@ -6,6 +6,7 @@ import requests
 from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Optional
+import argparse
 
 # ============================================================
 # Setup sys.path for local imports
@@ -54,6 +55,29 @@ HEADERS = {
 }
 
 GITHUB_API = "https://api.github.com"
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="astraai PR watcher")
+    parser.add_argument(
+        "--terminal",
+        action="store_true",
+        help="Run in terminal mode (no GitHub polling, print output only)",
+    )
+    parser.add_argument(
+        "--prompt-file",
+        type=str,
+        help="File containing the user prompt (terminal mode only)",
+    )
+    parser.add_argument("--llm-model", type=str, default="my-ollama-model")
+    parser.add_argument("--embed-model", type=str, default="nomic-embed-text")
+    parser.add_argument("--rag-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
+    parser.add_argument("--hpc-code-examples-dir", type=str, default=None)
+    parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--ollama-bin", type=str, default="/pscratch/.../ollama")
+    return parser.parse_args()
+
+ARGS = parse_args()
+TERMINAL_MODE = ARGS.terminal
 
 # ============================================================
 # LOGGING
@@ -109,9 +133,22 @@ def post_comment(pr: int, body: str):
         json={"body": body},
     )
 
+
 def post_astraai_comment(pr: int, message: str):
     body = f"🚀 **Agent astraai commented:**\n\n{message}"
     post_comment(pr, body)
+
+def emit_response(pr: Optional[int], message: str):
+    if TERMINAL_MODE:
+        print("\n" + "=" * 60)
+        print(message)
+        print("=" * 60 + "\n")
+    else:
+        # ✅ call the real GitHub comment function, not itself
+        assert pr is not None
+        post_astraai_comment(pr, message)
+
+
 
 def collect_conversation(pr: int) -> List[ConversationComment]:
     comments: List[ConversationComment] = []
@@ -165,9 +202,164 @@ def extract_astraai_prompt(body: str) -> Optional[str]:
         return None
     return body[idx + len(marker):].strip()
 
+def handle_user_prompt(
+    *,
+    user_prompt: str,
+    pr: Optional[int],
+):
+    """
+    Core astraai pipeline.
+    `pr` is None in terminal mode.
+    """
+
+    log(f"Handling prompt: {user_prompt}")
+
+    # ----------------
+    # Determine intent
+    # ----------------
+    intent = get_user_intent(user_prompt, MODEL_NAME, OLLAMA_BIN)
+
+    # ----------------
+    # Scaffolding
+    # ----------------
+    if intent == "scaffolding":
+        if scaffold_exists():
+            log("[INFO] Scaffold already exists, skipping.")
+            emit_response(pr, "⚠️ Scaffold already exists. Skipping.")
+            return
+
+        if not HPC_CODE_EXAMPLES_DIR:
+            log("[ERROR] hpc-code-examples-dir required for scaffolding")
+            emit_response(pr, "❌ hpc-code-examples-dir not configured.")
+            return
+
+        target_dir = "src"
+        os.makedirs(target_dir, exist_ok=True)
+
+        added_files = copy_scaffold(HPC_CODE_EXAMPLES_DIR, target_dir)
+
+        write_scaffold_state(
+            scaffold_type=os.path.basename(HPC_CODE_EXAMPLES_DIR),
+            intent=intent,
+            user_prompt=user_prompt,
+        )
+
+        files_list_str = "\n".join(f"- `{f}`" for f in added_files)
+        emit_response(
+            pr,
+            f"✅ Scaffold generated in `{target_dir}` with files:\n{files_list_str}",
+        )
+        return
+
+    # ----------------
+    # Compilation
+    # ----------------
+    if intent == "compilation":
+        log("[INFO] Compilation error detected")
+
+        prompt = build_compilation_prompt(user_prompt)
+        response = run_ollama(prompt, MODEL_NAME, ollama_bin=OLLAMA_BIN)
+
+        if not response:
+            emit_response(pr, "❌ Failed to analyze compilation error.")
+            return
+
+        emit_response(
+            pr,
+            "### 🧩 Compilation diagnostics\n\n" + response,
+        )
+        return
+
+    # ----------------
+    # Code generation
+    # ----------------
+    output_file = resolve_output_file(user_prompt)
+
+    metadata = load_rag_metadata(RAG_DIR)
+    canonical_query = f"AMReX C++ code generation request: {user_prompt}"
+    query_embedding = get_embedding(canonical_query, MODEL_NAME, OLLAMA_BIN)
+    relevant_chunks = retrieve_relevant_chunks(query_embedding, metadata)
+    context = "\n\n".join(relevant_chunks)
+
+    prompt = f"""
+You are an AMReX expert C++ developer.
+
+Using the context below as reference examples and patterns,
+generate a complete, compilable source file.
+
+Context:
+{context}
+
+User request:
+{user_prompt}
+"""
+
+    code = run_ollama(prompt, MODEL_NAME)
+    if code is None:
+        emit_response(pr, "❌ Code generation failed.")
+        return
+
+    # Track file changes
+    added_files = []
+    modified_files = {}
+
+    if not os.path.exists(output_file):
+        added_files.append(output_file)
+    else:
+        with open(output_file) as f:
+            old_lines = f.readlines()
+        new_lines = code.splitlines(keepends=True)
+        count = sum(1 for o, n in zip(old_lines, new_lines) if o != n)
+        count += abs(len(old_lines) - len(new_lines))
+        if count > 0:
+            modified_files[output_file] = count
+
+    with open(output_file, "w") as f:
+        f.write(code)
+
+    msg_lines = []
+    if added_files:
+        msg_lines.append(
+            "✅ Added files:\n" + "\n".join(f"- {f}" for f in added_files)
+        )
+    if modified_files:
+        msg_lines.append(
+            "✅ Modified files with line counts:\n"
+            + "\n".join(f"- {f}: {c} lines changed" for f, c in modified_files.items())
+        )
+    if not msg_lines:
+        msg_lines.append("⚠️ No changes were made to files.")
+
+    emit_response(pr, "\n".join(msg_lines))
+
+
 # ============================================================
 # MAIN WATCHER LOOP
 # ============================================================
+
+if TERMINAL_MODE:
+    if not ARGS.prompt_file:
+        print("ERROR: --prompt-file is required in terminal mode")
+        sys.exit(1)
+
+    if not os.path.exists(ARGS.prompt_file):
+        print(f"ERROR: prompt file {ARGS.prompt_file} not found")
+        sys.exit(1)
+
+    with open(ARGS.prompt_file, "r") as f:
+        user_prompt = f.read().strip()
+
+    if not user_prompt:
+        print("ERROR: prompt file is empty")
+        sys.exit(1)
+
+    log("[TERMINAL MODE] Running single prompt from file")
+    handle_user_prompt(
+        user_prompt=user_prompt,
+        pr=None,
+    )
+    sys.exit(0)
+
 SEEN = set()
 log("PR watcher started")
 
@@ -194,134 +386,12 @@ while True:
 
     log(f"Detected @astraai prompt from {latest.author}: {user_prompt}")
 
-    # ----------------
-    # Determine intent
-    # ----------------
-    intent = get_user_intent(user_prompt, MODEL_NAME, OLLAMA_BIN)
 
-    # ----------------
-    # Scaffolding
-    # ----------------
-    if intent == "scaffolding":
-        if scaffold_exists():
-            log("[INFO] Scaffold already exists, skipping.")
-            SEEN.add(latest.uid)
-            time.sleep(POLL_INTERVAL)
-            continue
+    handle_user_prompt(
+    user_prompt=user_prompt,
+    pr=pr,
+    )
 
-        if not HPC_CODE_EXAMPLES_DIR:
-            log("[ERROR] hpc-code-examples-dir required for scaffolding")
-            SEEN.add(latest.uid)
-            time.sleep(POLL_INTERVAL)
-            continue
-
-        target_dir = "src"
-        if not os.path.exists(target_dir):
-            os.makedirs(target_dir)
-
-        added_files = copy_scaffold(HPC_CODE_EXAMPLES_DIR, target_dir)
-        print("The added files are", added_files)
-        write_scaffold_state(
-            scaffold_type=os.path.basename(HPC_CODE_EXAMPLES_DIR),
-            intent=intent,
-            user_prompt=user_prompt
-        )
-
-        # Format a nice comment with file list
-        files_list_str = "\n".join([f"- `{f}`" for f in added_files])
-        post_astraai_comment(pr, f"✅ Scaffold generated in `{target_dir}` with files:\n{files_list_str}")
-        log(f"[OK] Scaffold copied into {target_dir}")
-        SEEN.add(latest.uid)
-        time.sleep(POLL_INTERVAL)
-        continue
-
-    if intent == "compilation":
-        log("[INFO] Compilation error detected")
-
-        prompt = build_compilation_prompt(user_prompt)
-
-        response = run_ollama(
-            prompt,
-            MODEL_NAME,
-            ollama_bin=OLLAMA_BIN,
-        )
-
-        if not response:
-            post_astraai_comment(pr, "❌ Failed to analyze compilation error.")
-            SEEN.add(latest.uid)
-            time.sleep(POLL_INTERVAL)
-            continue
-
-        post_astraai_comment(
-            pr,
-            "### 🧩 Compilation diagnostics\n\n" + response
-        )
-
-        SEEN.add(latest.uid)
-        time.sleep(POLL_INTERVAL)
-        continue
-
-    # ----------------
-    # Code generation
-    # ----------------
-    output_file = resolve_output_file(user_prompt)
-    metadata = load_rag_metadata(RAG_DIR)
-    canonical_query = f"AMReX C++ code generation request: {user_prompt}"
-    query_embedding = get_embedding(canonical_query, MODEL_NAME, OLLAMA_BIN)
-    relevant_chunks = retrieve_relevant_chunks(query_embedding, metadata)
-    context = "\n\n".join(relevant_chunks)
-
-    prompt = f"""
-You are an AMReX expert C++ developer.
-
-Using the context below as reference examples and patterns,
-generate a complete, compilable source file.
-
-Context:
-{context}
-
-User request:
-{user_prompt}
-"""
-
-    code = run_ollama(prompt, MODEL_NAME)
-    if code is None:
-        post_astraai_comment(pr, "❌ Code generation failed.")
-        SEEN.add(latest.uid)
-        time.sleep(POLL_INTERVAL)
-        continue
-
-    # Track added / modified files
-    added_files = []
-    modified_files = {}
-
-    if not os.path.exists(output_file):
-        added_files.append(output_file)
-    else:
-        with open(output_file) as f:
-            old_lines = f.readlines()
-        new_lines = code.splitlines(keepends=True)
-        count = sum(1 for o, n in zip(old_lines, new_lines) if o != n)
-        count += abs(len(old_lines) - len(new_lines))
-        if count > 0:
-            modified_files[output_file] = count
-
-    # Write code to file
-    with open(output_file, "w") as f:
-        f.write(code)
-
-    # Post results
-    msg_lines = []
-    if added_files:
-        msg_lines.append(f"✅ Added files:\n" + "\n".join(f"- {f}" for f in added_files))
-    if modified_files:
-        msg_lines.append("✅ Modified files with line counts:\n" + "\n".join(f"- {f}: {c} lines changed" for f, c in modified_files.items()))
-    if not added_files and not modified_files:
-        msg_lines.append("⚠️ No changes were made to files.")
-
-    post_astraai_comment(pr, "\n".join(msg_lines))
-    log(f"[OK] Wrote file: {output_file}")
     SEEN.add(latest.uid)
-
     time.sleep(POLL_INTERVAL)
-
+    continue
