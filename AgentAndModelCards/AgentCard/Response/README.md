@@ -22,10 +22,9 @@ metrics:
 
 agent_card:
   name: "AstraAI"
-  description: > 
-An open-source, Copilot-like AI agent for HPC and scientific codebases that integrates 
+  description:  "An open-source, Copilot-like AI agent for HPC and scientific codebases that integrates 
 large language models with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST)–guided 
-analysis to produce context-aware code suggestions and safely scoped GitHub pull request updates.
+analysis to produce context-aware code suggestions and safely scoped GitHub pull request updates."
   provider:
     organization: "Lawrence Berkeley National Laboratory"
     url: "https://www.lbl.gov"
