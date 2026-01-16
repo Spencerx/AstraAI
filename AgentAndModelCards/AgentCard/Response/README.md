@@ -68,7 +68,7 @@ The agent description provides basic details about the agent service/system. Thi
 *Last Updated*: **2026-01-16**
 
 ## Developed by
-Mahesh Natarajan, Xiaoye Li, Weiqun Zhang (Lawrence Berkeley National Laboratory)
+Mahesh Natarajan, Xiaoye Li (Lawrence Berkeley National Laboratory)
 
 ## Contributed by
 AMReX developers, HPC software engineers providing test cases and feedback.
@@ -169,9 +169,8 @@ Apache-2.0
 
 ## Contact Info and Card Authors
 
-- Mahesh Natarajan (email@example.com)
-- Xiaoye Li
-- Weiqun Zhang
+- Mahesh Natarajan (MaheshNatarajan@lbl.gov)
+- Xiaoye Li (xsli@lbl.gov)
 
 ## Intended Uses
 
