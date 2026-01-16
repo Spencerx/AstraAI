@@ -61,7 +61,7 @@ Extensions:
 
 ---
 
-# ${AGENT_NAME}
+# ${AstraAI}
 
 The agent description provides basic details about the agent service/system. This includes the agent’s purpose, how to interact with it (endpoint + I/O modes), declared capabilities/skills, and security/authentication requirements.
 
