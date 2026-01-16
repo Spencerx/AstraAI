@@ -29,6 +29,7 @@ Once on the node, initialize the environment and start the Ollama server:
     source <path-to-modcon-env>/bin/activate
     ollama serve &
 
+`<path-to-modcon-env>` is the path to the environment created in [Step 1 here](https://github.com/AIModCon/modcon-hpc/tree/main).  
 After the server finishes initializing, press **Enter** to return to the command prompt.
 
 ---
