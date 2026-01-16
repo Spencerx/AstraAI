@@ -160,7 +160,8 @@ pip freeze > requirements.txt
 
 ## Papers and Scientific Outputs
 
-N/A (planned SIAG LL4HPC conference submission)
+1. Talk at the 2nd annual High Performance Software Foundation conference in Chicago on March 16-20, 2026.
+2. Planned workshop paper submission in the 2nd International Workshop on Foundational Large Language Models Advances for HPC to be held in conjunction with ISC-HPC 2026, June 26th, 2026, Hamburg, Germany
 
 ## Agent License
 
