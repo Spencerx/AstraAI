@@ -119,6 +119,27 @@ AstraAI interprets developer intent from terminal prompts or GitHub pull request
   - Side effects: File conversion
   - Required permissions: Local execution
 
+- Tool: Model and embedding repository (Hugging Face Hub)
+  - Purpose: Source large language models and embedding models used by the agent
+  - Inputs: Model identifiers, configuration files, tokenizer artifacts
+  - Outputs: Model weights, tokenizers, embedding models
+  - Side effects: Network access for model download (optional local caching)
+  - Required permissions: Network access (read-only)
+
+- Tool: GitHub API
+  - Purpose: Read PR comments and post agent responses
+  - Inputs: PR metadata, comments
+  - Outputs: PR comments
+  - Side effects: network calls
+  - Required permissions: GitHub token (repo-scoped)
+
+- Tool: Local file system and GPUs
+  - Purpose: Generate or modify source files
+  - Inputs: Prompt, templates
+  - Outputs: Source code files
+  - Side effects: writes data
+  - Required permissions: filesystem access, compute time on GPU nodes
+
 ### Service endpoint and discovery
 - Base URL: "local execution / CLI / GitHub PR watcher"
 - A2A discovery path(s): N/A
