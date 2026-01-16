@@ -137,6 +137,7 @@ Run on standard DOE HPC workstations or clusters; GPU recommended for LLM infere
 
 ```txt
 pip freeze > requirements.txt
+```
 
 ## Papers and Scientific Outputs
 
