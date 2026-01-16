@@ -1,5 +1,5 @@
 # Replace with the EXACT path to your .gguf file
-FROM /pscratch/sd/n/nataraj2/AI_ModCon/GitHub/modcon-hpc/ModelFiles
+FROM <path-to-model-q8_0.gguf>
 
 # Mistral 0.3 specific chat template
 TEMPLATE "[INST] {{ .System }} {{ .Prompt }} [/INST]"
