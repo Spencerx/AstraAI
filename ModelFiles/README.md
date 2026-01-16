@@ -29,7 +29,7 @@ This produces the file `model-q8_0.gguf`, which will be used by Ollama.
 
 Create a `modelfile_for_ollama` (see example in this directory).
 
-In the `FROM` line, point to the GGUF file generated in Step 1 above:
+In the `FROM` line in this file (see example in this directory), point to the path of the GGUF file generated in Step 1 above:
 
     FROM <path-to-model-q8_0.gguf>
 
