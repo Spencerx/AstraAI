@@ -10,7 +10,7 @@ Here are the steps
 
 ## 1. Convert the model from Hugging Face to GGUF
 
-Activate the ModCon Python environment:
+Activate the ModCon Python environment created in [Step 1 here](https://github.com/AIModCon/modcon-hpc/tree/main):
 
     source <path-to-modcon-env>/bin/activate
 
@@ -29,7 +29,7 @@ This produces the file `model-q8_0.gguf`, which will be used by Ollama.
 
 Create a `modelfile_for_ollama` (see example in this directory).
 
-In the `FROM` line, point to the GGUF file generated in Step 2:
+In the `FROM` line, point to the GGUF file generated in Step 1 above:
 
     FROM <path-to-model-q8_0.gguf>
 
