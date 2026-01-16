@@ -105,6 +105,13 @@ AstraAI interprets developer intent from terminal prompts or GitHub pull request
   **Input/Output Modes**: text/plain / text/plain
 
 ### Tools and permissions
+- Tool: Model and embedding repository (Hugging Face Hub)
+  - Purpose: Source large language models and embedding models used by the agent
+  - Inputs: Model identifiers, configuration files, tokenizer artifacts
+  - Outputs: Model weights, tokenizers, embedding models
+  - Side effects: Network access for model download (optional local caching)
+  - Required permissions: Network access (read-only)
+
 - Tool: Local LLM runtime (Ollama)
   - Purpose: Natural language understanding and code generation
   - Inputs: Prompts from terminal or PR
@@ -118,13 +125,6 @@ AstraAI interprets developer intent from terminal prompts or GitHub pull request
   - Outputs: GGUF model file
   - Side effects: File conversion
   - Required permissions: Local execution
-
-- Tool: Model and embedding repository (Hugging Face Hub)
-  - Purpose: Source large language models and embedding models used by the agent
-  - Inputs: Model identifiers, configuration files, tokenizer artifacts
-  - Outputs: Model weights, tokenizers, embedding models
-  - Side effects: Network access for model download (optional local caching)
-  - Required permissions: Network access (read-only)
 
 - Tool: GitHub API
   - Purpose: Read PR comments and post agent responses
