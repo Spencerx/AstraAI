@@ -69,7 +69,7 @@ Extensions:
 Mahesh Natarajan, Xiaoye Li (Lawrence Berkeley National Laboratory)
 
 ## Contributed by
-AMReX developers, HPC software engineers providing test cases and feedback.
+No additional contributors.
 
 ## Agent Changelog
 + **2026-01-17** – Initial internal version (private repository)
