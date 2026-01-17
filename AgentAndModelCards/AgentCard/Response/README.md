@@ -205,7 +205,7 @@ HPC developers and scientific software engineers working on codebases in C++ and
 
 ### Mission Relevance
 
-AstraAI supports the GENESIS mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers more efficiently leverage supercomputing resources and experimental data. This enables faster development of scientific solvers, improves reproducibility, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
+AstraAI supports the GENESIS mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers with faster development of scientific solves, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
 
 ### Out-of-Scope Use Cases
 
