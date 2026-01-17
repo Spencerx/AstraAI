@@ -76,7 +76,7 @@ No additional contributors.
 
 
 ## Agent short description
-Tool-using AI assistant for HPC codebases, combining LLMs, Retrieval Augmented Generation (RAG), and Abstract Syntax Tree (AST)-guided code edits for safe, context-aware code suggestions.
+An agentic AI assistant for HPC codebases, combining LLMs, Retrieval Augmented Generation (RAG), and Abstract Syntax Tree (AST)-guided code edits for safe, context-aware code suggestions.
 
 ## Agent description
 AstraAI interprets developer intent from terminal prompts or GitHub pull request comments, retrieves relevant HPC code examples via RAG, performs AST-based code analysis, and applies scoped code modifications. It enhances productivity while minimizing risk in complex HPC software workflows.
