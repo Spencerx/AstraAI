@@ -183,7 +183,7 @@ huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
 
 ## Agent License
 
-Apache-2.0
+BSD 3-Clause License
 
 ## Contact Info and Card Authors
 
@@ -194,15 +194,25 @@ Apache-2.0
 
 ### Intended Use
 
-Accelerating HPC software development by providing safe, context-aware code suggestions and automated scaffolding for scientific solvers.
+AstraAI is designed to accelerate HPC software development by providing safe, context-aware code suggestions and automated scaffolding for scientific solvers. The agent interprets developer intent from terminal commands or GitHub pull request comments, retrieves relevant code examples via Retrieval-Augmented Generation (RAG), and applies AST-guided edits to ensure syntactically correct, scope-limited modifications.
+
+It is particularly useful for:
+
+- Adding or refactoring functions in large HPC codebases without introducing syntax errors
+- Generating boilerplate or scaffolding for new solver components
+- Explaining or analyzing compiler errors and suggesting fixes
+- Supporting Python, C++, and Fortran codebases, with AST-guided edits ensuring correctness in structurally complex code
+
+AstraAI combines developer intent, editable code regions, repository knowledge (RAG chunks), and general instruction prompts into a single LLM-driven workflow, producing automated edits that integrate directly into the codebase while minimizing risk in high-performance scientific applications.
 
 ### Primary Intended Users
 
-HPC developers and scientific software engineers working on AMReX or similar frameworks.
+HPC developers and scientific software engineers working on codebases in C++ and Fortran.
 
 ### Mission Relevance
+### Mission Relevance
 
-DOE HPC projects, scientific software development workflows, and research reproducibility.
+AstraAI supports the GENESIS mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers more efficiently leverage supercomputing resources and experimental data. This enables faster development of scientific solvers, improves reproducibility, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
 
 ### Out-of-Scope Use Cases
 
