@@ -97,7 +97,7 @@ The agent does not depend on a single fixed model. It supports interchangeable o
   **Name**: HPC Code Assistance  
   **Description**: Supports scaffolding, debugging, and code generation for HPC software projects.  
   **Tags**: HPC, LLM, RAG, AST, C++, Fortran, GitHub  
-  **Examples**:
+  **Examples**:  
     Generate AMReX scaffolding for a new solver  
     Analyze and explain a compiler error  
   **Input/Output Modes**: text/plain / text/plain
