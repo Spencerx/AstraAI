@@ -174,7 +174,7 @@ huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
 - **Ollama runtime**: For running Hugging Face models directly  
 - **llama.cpp**: For converting Hugging Face models to GGUF for local deployment 
 - **C++ AST**: Clang / LibTooling for parsing headers, classes, and functions for safe code edits  
-- **Fortran AST (optional)**: fparser or OpenFortranParser, depending on target codebase  
+- **Fortran AST**: fparser or OpenFortranParser, depending on target codebase  
 
 ## Papers and Scientific Outputs
 
