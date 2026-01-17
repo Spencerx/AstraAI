@@ -147,16 +147,31 @@ The agent does not depend on a single fixed model. It supports interchangeable o
 
 ## Runtime Infrastructure
 
+This agent (AstraAI) is designed for HPC codebases and combines Python-based LLM runtimes, Hugging Face models, AST-guided code analysis, and code editing tools. It has been tested on GPU-equipped HPC nodes and local workstations.
+
 ### Hardware
-Run on standard DOE HPC workstations or clusters; GPU recommended for LLM inference.
+- GPU-enabled HPC cluster or workstation (CUDA 12.1 compatible)
+- Local storage for model weights and Hugging Face cache
 
 ### Software
-- Python 3.10+
-- Ollama LLM runtime
-- llama.cpp for model conversion
-- Required Python packages: listed in requirements.txt
+- **Python**: virtual environment created at `$SCRATCH/modcon-env`
+- **Python packages installed via pip**:
+  - `torch`, `torchvision`, `torchaudio` (CUDA 12.1)
+  - `transformers`, `accelerate`, `bitsandbytes`, `huggingface_hub`
 
-pip freeze > requirements.txt
+```bash
+# Setup Python environment
+mkdir -p $SCRATCH/modcon-env
+python -m venv $SCRATCH/modcon-env
+source $SCRATCH/modcon-env/bin/activate
+pip install --upgrade pip
+pip install --prefix=$SCRATCH/modcon-env torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install --prefix=$SCRATCH/modcon-env transformers accelerate bitsandbytes huggingface_hub
+huggingface-cli login
+huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
+  --local-dir <dir-to-install> --local-dir-use-symlinks False
+
+```
 
 ## Papers and Scientific Outputs
 
