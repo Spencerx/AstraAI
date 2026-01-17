@@ -63,8 +63,6 @@ Extensions:
 
 # AstraAI
 
-The agent description provides basic details about the agent service/system. This includes the agent’s purpose, how to interact with it (endpoint + I/O modes), declared capabilities/skills, and security/authentication requirements.
-
 *Last Updated*: **2026-01-16**
 
 ## Developed by
@@ -74,7 +72,8 @@ Mahesh Natarajan, Xiaoye Li (Lawrence Berkeley National Laboratory)
 AMReX developers, HPC software engineers providing test cases and feedback.
 
 ## Agent Changelog
-+ **2026-01-16** initial public version
++ **2026-01-17** – Initial internal version (private repository)
+
 
 ## Agent short description
 Tool-using AI assistant for HPC codebases, combining LLMs, retrieval, and AST-guided code edits for safe, context-aware code suggestions.
