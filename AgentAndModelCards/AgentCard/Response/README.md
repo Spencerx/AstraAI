@@ -100,7 +100,8 @@ The agent does not depend on a single fixed model. It supports interchangeable o
   **Examples**:  
     -- Generate AMReX scaffolding for a new solver  
     -- Analyze and explain a compiler error  
-    -- Add a member function to an existing class (e.g., `add computeEnergy(double mass, double velocity)` to `class Particle`) and implement it in the corresponding `.cpp` file.
+    -- Add a member function to an existing class (e.g., `add computeEnergy(double mass, double velocity)` to `class Particle`) 
+       and implement it in the corresponding `.cpp` file.  
   **Input/Output Modes**: text/plain / text/plain
 
 ### Tools and permissions
