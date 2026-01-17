@@ -266,8 +266,7 @@ python pr_watcher.py \
 
 # More Information (Optional)
 
-- **Source repository**: [https://github.com/your-repo/AstraAI](https://github.com/your-repo/AstraAI)  
-- **Model conversion instructions**: [https://github.com/ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp)  
+- **Source repository**: Currently private  
 - **LLM runtime**: [https://ollama.ai](https://ollama.ai)  
 
 
