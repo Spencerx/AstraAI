@@ -209,9 +209,9 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 
 ### Out-of-Scope Use Cases
 
-- Non-HPC codebases
-- End-user software outside scientific computing
-- Production AI deployment without code review
+- Fully autonomous code generation without human review  
+- Editing languages unsupported by AST tools  
+- Making high-level design decisions  
 
 ## How to Use
 
