@@ -141,9 +141,9 @@ The agent does not depend on a single fixed model. It supports interchangeable o
   - Required permissions: filesystem access, compute time on GPU nodes
 
 ### Service endpoint and discovery
-- Base URL: "local execution / CLI / GitHub PR watcher"
-- A2A discovery path(s): N/A
-- Invocation endpoint (example): CLI script or PR watcher Python process
+- Base URL: N/A (currently local/private use)
+- A2A discovery path(s): N/A (not deployed)
+- Invocation endpoint (example): N/A (currently invoked via Python scripts or CLI)
 
 ## Runtime Infrastructure
 
