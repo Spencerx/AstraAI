@@ -264,8 +264,6 @@ The `--terminal` option lets the user interact with AstraAI from the command lin
 
 ## Limitations
 
-## Limitations
-
 - **Language support**: AST-guided edits work best for well-supported languages (C++, Python); support for complex Fortran or other languages may be limited.  
 - **LLM variability**: Quality of suggestions depends on the underlying model and prompt; results may be inconsistent.  
 - **Context dependence**: The agent operates on scoped code regions; insufficient context can lead to incomplete or incorrect edits.  
