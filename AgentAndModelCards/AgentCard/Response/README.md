@@ -79,7 +79,7 @@ No additional contributors.
 An agentic AI assistant for HPC codebases that combines LLMs, Retrieval Augmented Generation (RAG), and Abstract Syntax Tree (AST)–guided code editing to produce safe, context-aware modifications.
 
 ## Agent description
-AstraAI interprets developer intent from terminal prompts or GitHub pull request comments, retrieves relevant HPC code examples via RAG, and uses AST-based analysis to determine permissible code edit regions. The system constructs a structured LLM prompt that combines the user request, the target code fragment, retrieved context, and explicit editing constraints. The generated output is subsequently checked against AST and structural rules and applied as a scoped, syntax-preserving code modification, improving productivity while reducing risk in complex HPC software workflows.
+AstraAI interprets developer intent from terminal prompts or GitHub pull-request comments, retrieves relevant HPC code examples via RAG, and uses AST-based analysis to identify editable regions, infer context-aware edit constraints, and verify generated changes. These constraints are incorporated into a structured LLM prompt alongside the user request and retrieved context. The LLM output is subsequently validated against AST-derived structural and semantic rules and applied as a scoped, syntax-preserving modification, improving productivity while reducing risk in large-scale HPC software development.
 
 ## Underlying model(s) (optional)
 The agent does not depend on a single fixed model. It supports interchangeable open-source LLM backends, including models distributed via Hugging Face, provided that the model weights or checkpoints can be downloaded and served locally.
