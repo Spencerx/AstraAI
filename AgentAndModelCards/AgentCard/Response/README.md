@@ -4,9 +4,9 @@ language:
 tags:
 - project:Genesis Mission
 - team:AI4HPC
-- type:agent
-- science:computational-science
-- risk:general
+- type:Agent
+- science:Computational-science
+- risk:General
 license: BSD 3-Clause License
 
 base_model: any model downloaded from hugging face
