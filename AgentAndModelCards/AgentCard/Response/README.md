@@ -25,7 +25,7 @@ agent_card:
   version: "0.1.0"
   documentation_url: in progress
   protocol_version: "0.1.0"
-  preferred_transport: "local/CLI""
+  preferred_transport: "local/CLI"
   capabilities:
     streaming: "false"
     push_notifications: "false"
