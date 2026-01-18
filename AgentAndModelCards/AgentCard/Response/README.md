@@ -7,10 +7,10 @@ tags:
 - type:agent
 - science:computational-science
 - risk:general
-license: BSD 3-Clause License
+license: BSD 3-Clause
 
-base_model: any model downloaded from Hugging Face
-new_version: any model dowloaded from Hugging Face
+base_model: N/A 
+new_version: 
 datasets:
     - HPC codebases (eg. AMReX)
 metrics:
@@ -183,7 +183,7 @@ huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
 
 ## Agent License
 
-BSD 3-Clause License
+BSD 3-Clause
 
 ## Contact Info and Card Authors
 
