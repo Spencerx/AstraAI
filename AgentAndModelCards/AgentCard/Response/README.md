@@ -21,9 +21,9 @@ agent_card:
   description: "An open-source, Copilot-like AI agent for HPC codebases combining LLMs, RAG, and AST-guided code editing to produce safe, context-aware modifications."
   provider:
     organization: "Lawrence Berkeley National Laboratory"
-    url: "https://github.com/your-repo/AstraAI"
+    url: "https://github.com/AIModCon/modcon-hpc/tree/main/" (currently private)
   version: "0.1.0"
-  documentation_url: "https://github.com/your-repo/AstraAI#readme"
+  documentation_url: in progress
   protocol_version: "0.1.0"
   preferred_transport: "JSONRPC"
   capabilities:
