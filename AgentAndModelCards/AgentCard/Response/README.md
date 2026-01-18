@@ -217,7 +217,12 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 
 ### Install Instructions
 
-Clone the repository, install dependencies from `requirements.txt`, and configure the local Ollama runtime.
+- Clone the repository.
+- Download Ollama runtime.
+- Download llama.cpp and configure.
+- Create a Python virtual environment and install dependencies (PyTorch, Transformers, bitsandbytes, etc.) as documented internally.  
+- Configure Hugging Face cache and model downloads per internal instructions.  
+- Ensure required AST tooling (Clang / fparser) is installed and accessible.
 
 ### Agent Configuration
 
@@ -235,12 +240,15 @@ Clone the repository, install dependencies from `requirements.txt`, and configur
 ### Code Snippets of How to Use the Agent
 
 ```bash
-python pr_watcher.py \
-  --llm-model=my-ollama-model \
-  --embed-model=nomic-embed-text \
-  --rag-dir=./rag_metadata/ \
-  --hpc-code-examples-dir=./tutorials/ \
-  --terminal
+python3 ../modcon-hpc/Tools/AstraAIViaGitHubPR/pr_watcher.py \
+--llm-model=my-ollama-model \
+--embed-model=all-minilm \
+--rag-dir=<path-to-rag-metadata-dir> \
+--hpc-code-scaffold-dir=<path-to-hpc-template-dir> \  
+--top-k=5 \
+--ollama-bin=<path-to-bin-of-ollama-runtime> \
+--prompt-file=user_prompt.txt
+--terminal #(optional)
 ```
 
 # Limitations
