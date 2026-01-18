@@ -228,15 +228,15 @@ Detailed ste-by-step instructions are provided in the GitHub repository which is
 ### Agent Configuration
 
 - **System and prompt instructions**: Combines static system prompts with dynamic user input, such as terminal commands or GitHub pull request comments, to guide LLM behavior and scoped code edits.  
-- **Tool integration**: API keys, endpoints, and access scopes for external services are managed per internal environment.  
+- **Tool integration**:   
 - **Policy settings**: Controls allowed tools, rate limits, and data access to ensure safe and compliant operation.  
 - **Memory and state management**: Runtime handles task state, context retention, and optional persistent storage as configured.
 
 ### Invocation / Integration
 
-- **CLI execution**: terminal prompt mode
-- **GitHub PR watcher**: polls PRs and comments every 5 seconds
-- Based on the prompt, the output is returned as code suggestions, explanations, compilation error fixes in PR comments, or as local code modifications
+- **CLI execution**: terminal mode with prompt in a text file
+- **GitHub PR watcher**: GitHub PR mode (polled every 5 seconds) and prompt as comments
+- Based on the prompt, the output is returned in the PR comments as code suggestions, explanations, compilation error fixes, or as local code modifications
 
 ### Code Snippets of How to Use the Agent
 ```bash
