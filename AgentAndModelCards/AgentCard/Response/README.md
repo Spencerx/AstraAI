@@ -236,7 +236,7 @@ Detailed ste-by-step instructions are provided in the GitHub repository which is
 
 - **CLI execution**: Agent in terminal mode (CLI) with prompt in a text file, and based on the prompt, the output is either to the terminal or changes to the local code.
 - **GitHub PR watcher**: GitHub PR mode (polled every 5 seconds) takes prompt from PR comments, and based on the prompt, the output is either to the PR comments or changes to the local code.
-- Based on the prompt, the output is returned in the PR comments as code suggestions, explanations, compilation error fixes, or as local code modifications
+- Based on the prompt, the output is returned as code suggestions, explanations, compilation error fixes, or as local code modifications
 
 ### Code Snippets of How to Use the Agent
 ```bash
