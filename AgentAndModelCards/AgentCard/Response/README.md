@@ -3,18 +3,18 @@ language:
 - en
 tags:
 - project:genesis
-- team:moat
+- team:AI4HPC
 - type:agent
 - science:computational-science
 - risk:general
-license: Apache-2.0
+license: BSD 3-Clause License
 
-base_model: meta-llama/Llama-3.1-8B
-new_version: meta-llama/Llama-3.1-8B
+base_model: any model downloaded from hugging face
+new_version: any model dowloaded from hugging face
 datasets:
-    - N/A
+    - HPC codebases (eg. AMReX)
 metrics:
-    - N/A
+    - In progress
 
 agent_card:
   name: "AstraAI"
