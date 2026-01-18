@@ -238,18 +238,18 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 - Outputs returned as code suggestions or PR comments
 
 ### Code Snippets of How to Use the Agent
-
 ```bash
-python3 astrai_pr_watcher.py \
---llm-model=my-ollama-model \
---embed-model=all-minilm \
+python3 astrai.py \
+--llm-model=<path-to-modelfile-of-choice> \
+--embed-model=<name-of-embed-model-in-ollama> \
 --rag-dir=<path-to-rag-metadata-dir> \
 --hpc-code-scaffold-dir=<path-to-hpc-template-dir> \  
 --top-k=5 \
 --ollama-bin=<path-to-bin-of-ollama-runtime> \
---prompt-file=user_prompt.txt
+--prompt-file=<path-to-prompt-filename>
 --terminal #(optional)
 ```
+The `--terminal` option lets the user interact with AstraAI in the command line. The default setting is prompting through GitHub PR comments.
 
 # Limitations
 
