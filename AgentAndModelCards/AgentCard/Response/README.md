@@ -23,7 +23,7 @@ agent_card:
     organization: "Lawrence Berkeley National Laboratory"
     url: "https://github.com/AIModCon/modcon-hpc/tree/main/ (currently private)"
   version: "0.1.0"
-  documentation_url: in progress
+  documentation_url: ""
   protocol_version: "0.1.0"
   preferred_transport: "local/CLI"
   capabilities:
