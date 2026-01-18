@@ -268,12 +268,13 @@ The `--terminal` option lets the user interact with AstraAI from the command lin
 - Currently supports HPC scientific code (C++/Fortran); extension to other languages may require retraining/adaptation  
 
 # Agent Evaluation Details (Optional)
+The plan is the following.
 
-- **Task success**: correctness of code edits and compilability  
 - **Tool-call correctness**: evaluation against test compilations  
 - **Latency**: depends on local LLM inference speed  
-- **Human-in-the-loop**: recommended for final code merges  
+- **Task success**: correctness of code edits and compilability  
 - **Regression tests**: automated tests on scaffolding and AST modifications  
+- **Human-in-the-loop**: recommended for final code merges  
 
 # More Information (Optional)
 
