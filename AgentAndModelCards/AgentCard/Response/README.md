@@ -2,7 +2,7 @@
 language:
 - en
 tags:
-- project:genesis
+- project:Genesis Mission
 - team:AI4HPC
 - type:agent
 - science:computational-science
