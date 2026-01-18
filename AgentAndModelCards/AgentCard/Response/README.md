@@ -21,7 +21,7 @@ agent_card:
   description: "An open-source, Copilot-like AI agent for HPC codebases combining LLMs, RAG, and AST-guided code editing to produce safe, context-aware modifications."
   provider:
     organization: "Lawrence Berkeley National Laboratory"
-    url: "https://github.com/AIModCon/modcon-hpc/tree/main/ (currently private)"
+    url: "https://github.com/AIModCon/modcon-hpc (currently private)"
   version: "0.1.0"
   documentation_url: ""
   protocol_version: "0.1.0"
