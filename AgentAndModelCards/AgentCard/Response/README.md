@@ -245,7 +245,7 @@ python3 astrai.py \
 --embed-model=<name-of-embed-model-in-ollama> \
 --rag-dir=<path-to-rag-metadata-dir> \
 --hpc-code-template-dir=<path-to-hpc-code-template-dir> \  
---top-k=5 \
+--top-k=<integer value> \ #number of retrieval chunks from RAG 
 --ollama-bin=<path-to-bin-of-ollama-runtime> \
 --prompt-file=<path-to-prompt-filename>
 --terminal #(optional)
