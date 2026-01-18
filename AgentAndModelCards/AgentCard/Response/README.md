@@ -228,8 +228,8 @@ Detailed ste-by-step instructions are provided in the GitHub repository which is
 ### Agent Configuration
 
 - **System and prompt instructions**: Combines static system prompts with dynamic user input, such as terminal commands or GitHub pull request comments, to guide LLM behavior and scoped code edits.  
-- **Tool integration**:   
-- **Policy settings**: Controls allowed tools, rate limits, and data access to ensure safe and compliant operation.  
+- **Tool integration**: Invoked via local Python/CLI; integrates with user prompts or GitHub PR comments; no external APIs or network access required
+- **Policy settings**: Not decided yet. But will ensure safe and compliant operation.  
 - **Memory and state management**: Runtime handles task state, context retention, and optional persistent storage as configured.
 
 ### Invocation / Integration
