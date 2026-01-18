@@ -227,10 +227,10 @@ Detailed ste-by-step instructions are provided in the GitHub repository which is
 
 ### Agent Configuration
 
-- System/prompt instructions in prompt files
-- Tool configuration: local LLM runtime, model conversion via `llama.cpp`
-- Policy configuration: scoped edits, RAG retrieval limits
-- Memory/state: per-run session only
+- **System and prompt instructions**: Combines static system prompts with dynamic user input, such as terminal commands or GitHub pull request comments, to guide LLM behavior and scoped code edits.  
+- **Tool integration**: API keys, endpoints, and access scopes for external services are managed per internal environment.  
+- **Policy settings**: Controls allowed tools, rate limits, and data access to ensure safe and compliant operation.  
+- **Memory and state management**: Runtime handles task state, context retention, and optional persistent storage as configured.
 
 ### Invocation / Integration
 
