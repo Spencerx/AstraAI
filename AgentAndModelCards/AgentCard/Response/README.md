@@ -236,7 +236,7 @@ Detailed ste-by-step instructions are provided in the GitHub repository which is
 
 - **CLI execution**: terminal prompt mode
 - **GitHub PR watcher**: polls PRs and comments every 5 seconds
-- Outputs returned as code suggestions or PR comments
+- Based on the prompt, the output is returned as code suggestions, explanations, compilation error fixes in PR comments, or as local code modifications
 
 ### Code Snippets of How to Use the Agent
 ```bash
