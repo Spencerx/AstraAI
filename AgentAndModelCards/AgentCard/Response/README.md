@@ -44,7 +44,7 @@ authentication:
     - id: "code_assist"
       name: "HPC Code Assistance"
       description: "Supports scaffolding, debugging, and code generation for scientific/HPC software projects."
-      tags: [HPC, C++, Fortran, GitHub]
+      tags: [HPC, C++, Fortran, RAG, AST, LLM, GitHub]
       examples:
         - "Generate AMReX scaffolding for a new solver"
         - "Analyze and explain a compiler error"
