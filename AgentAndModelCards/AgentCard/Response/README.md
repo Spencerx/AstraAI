@@ -282,10 +282,3 @@ The plan is the following.
 - **Human-in-the-loop**: recommended for final code merges  
 
 # More Information (Optional)
-
-- **Source repository**: Currently private  
-- **LLM runtime**: [https://ollama.ai](https://ollama.ai)  
-
-
-
-
