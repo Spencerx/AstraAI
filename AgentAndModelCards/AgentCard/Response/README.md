@@ -197,7 +197,7 @@ BSD 3-Clause
 - Adding or refactoring functions in large HPC codebases without introducing syntax errors
 - Generating boilerplate or scaffolding for new solver components
 - Explaining or analyzing compiler errors and suggesting fixes
-- Supporting C++, and Fortran codebases, with AST-guided edits ensuring correctness in structurally complex code
+- Supporting C++ and Fortran codebases, with AST-guided edits ensuring correctness in structurally complex code
 
 ### Primary Intended Users
 
