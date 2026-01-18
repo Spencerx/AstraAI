@@ -9,8 +9,8 @@ tags:
 - risk:General
 license: BSD 3-Clause License
 
-base_model: any model downloaded from hugging face
-new_version: any model dowloaded from hugging face
+base_model: any model downloaded from Hugging Face
+new_version: any model dowloaded from Hugging Face
 datasets:
     - HPC codebases (eg. AMReX)
 metrics:
