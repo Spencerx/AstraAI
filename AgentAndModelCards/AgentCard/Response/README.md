@@ -240,7 +240,7 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 ### Code Snippets of How to Use the Agent
 
 ```bash
-python3 ../modcon-hpc/Tools/AstraAIViaGitHubPR/pr_watcher.py \
+python3 astrai_pr_watcher.py \
 --llm-model=my-ollama-model \
 --embed-model=all-minilm \
 --rag-dir=<path-to-rag-metadata-dir> \
