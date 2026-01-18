@@ -33,7 +33,7 @@ agent_card:
 
 authentication: 
   schemes: 
-    - "Bearer"
+    - "None"
   credentials: ""
   default_input_modes:
     - "text/plain"
