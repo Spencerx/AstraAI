@@ -154,7 +154,7 @@ This agent (AstraAI) is designed for HPC codebases and combines Python-based LLM
 - Local storage for model weights and Hugging Face cache
 
 ### Software
-- **Python**: virtual environment created at `$SCRATCH/modcon-env`
+- **Python**: virtual environment created locally.
 - **Python packages installed via pip**:
   - `torch`, `torchvision`, `torchaudio` (CUDA 12.1)
   - `transformers`, `accelerate`, `bitsandbytes`, `huggingface_hub`
