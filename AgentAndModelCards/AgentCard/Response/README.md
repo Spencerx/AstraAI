@@ -14,7 +14,7 @@ new_version: any model dowloaded from Hugging Face
 datasets:
     - HPC codebases (eg. AMReX)
 metrics:
-    - in progress
+    - regression tests (in progress)
 
 agent_card:
   name: "AstraAI"
