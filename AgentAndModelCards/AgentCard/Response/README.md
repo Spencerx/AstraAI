@@ -256,9 +256,11 @@ The `--terminal` option lets the user interact with AstraAI from the command lin
 
 ## Risks
 
-- Tool invocation can modify code; only safe scoped edits recommended  
-- Potential for prompt injection via untrusted PR comments  
-- Data exfiltration risk minimized by local execution only  
+- **Code edits**: AST-guided changes may introduce syntax or logic errors; always review before committing.  
+- **Prompt issues**: Malformed or malicious inputs (terminal prompts or GitHub PR comments) can lead to incorrect edits.  
+- **Data handling**: Users must manage sensitive or proprietary code appropriately.  
+
+> Note: AstraAI runs locally with no external APIs, minimizing exposure to network-based threats.
 
 ## Limitations
 
