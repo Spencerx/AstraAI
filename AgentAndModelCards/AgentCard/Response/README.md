@@ -249,7 +249,7 @@ python3 astrai.py \
 --prompt-file=<path-to-prompt-filename>
 --terminal #(optional)
 ```
-The `--terminal` option lets the user interact with AstraAI in the command line. The default setting is prompting through GitHub PR comments.
+The `--terminal` option lets the user interact with AstraAI from the command line in the terminal. The default setting is prompting through GitHub PR comments.
 
 # Limitations
 
