@@ -273,7 +273,7 @@ The `--terminal` option lets the user interact with AstraAI from the command lin
 # Agent Evaluation Details (Optional)
 The plan is the following.
 
-- **Tool-call correctness**: evaluation against test compilations  
+- **Tool-call correctness**: evaluation against test prompts 
 - **Latency**: depends on local LLM inference speed  
 - **Task success**: correctness of code edits and compilability  
 - **Regression tests**: automated tests on scaffolding and AST modifications  
