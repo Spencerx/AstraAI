@@ -2,19 +2,19 @@
 language:
 - en
 tags:
-- project:Genesis Mission
+- project:genesis
 - team:AI4HPC
-- type:Agent
-- science:Computational-science
-- risk:General
+- type:agent
+- science:computational-science
+- risk:general
 license: BSD 3-Clause License
 
-base_model: Any model downloaded from Hugging Face
-new_version: Any model dowloaded from Hugging Face
+base_model: any model downloaded from Hugging Face
+new_version: any model dowloaded from Hugging Face
 datasets:
     - HPC codebases (eg. AMReX)
 metrics:
-    - In progress
+    - in progress
 
 agent_card:
   name: "AstraAI"
