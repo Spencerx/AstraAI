@@ -161,12 +161,12 @@ This agent (AstraAI) is designed for HPC codebases and combines Python-based LLM
 
 ```bash
 # Setup Python environment
-mkdir -p $SCRATCH/modcon-env
-python -m venv $SCRATCH/modcon-env
-source $SCRATCH/modcon-env/bin/activate
+mkdir -p modcon-env
+python -m venv modcon-env
+source modcon-env/bin/activate
 pip install --upgrade pip
-pip install --prefix=$SCRATCH/modcon-env torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install --prefix=$SCRATCH/modcon-env transformers accelerate bitsandbytes huggingface_hub
+pip install --prefix=modcon-env torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install --prefix=modcon-env transformers accelerate bitsandbytes huggingface_hub
 huggingface-cli login
 huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
   --local-dir <dir-to-install> --local-dir-use-symlinks False
