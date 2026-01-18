@@ -244,7 +244,7 @@ python3 astrai.py \
 --llm-model=<path-to-modelfile-of-choice> \
 --embed-model=<name-of-embed-model-in-ollama> \
 --rag-dir=<path-to-rag-metadata-dir> \
---hpc-code-scaffold-dir=<path-to-hpc-template-dir> \  
+--hpc-code-template-dir=<path-to-hpc-template-dir> \  
 --top-k=5 \
 --ollama-bin=<path-to-bin-of-ollama-runtime> \
 --prompt-file=<path-to-prompt-filename>
