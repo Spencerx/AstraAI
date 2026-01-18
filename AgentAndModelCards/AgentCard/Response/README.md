@@ -205,7 +205,7 @@ HPC developers and scientific software engineers working on codebases in C++ and
 
 ### Mission Relevance
 
-AstraAI supports the GENESIS mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers with faster development of scientific solves, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
+AstraAI supports the GENESIS mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers with faster development of scientific solvers, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
 
 ### Out-of-Scope Use Cases
 
@@ -216,7 +216,7 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 ## How to Use
 
 ### Install Instructions
-Detailed ste-by-step instructions are provided in the GitHub repository which is currently private. Here is a summary of the steps.
+Detailed step-by-step instructions are provided in the GitHub repository which is currently private. Here is a summary of the steps.
 
 - Clone the repository.
 - Download Ollama runtime.
