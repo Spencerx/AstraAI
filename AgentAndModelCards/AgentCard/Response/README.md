@@ -216,12 +216,13 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 ## How to Use
 
 ### Install Instructions
+Detailed ste-by-step instructions are provided in the GitHub repository which is currently private. Here is a summary of the steps.
 
 - Clone the repository.
 - Download Ollama runtime.
 - Download llama.cpp and configure.
-- Create a Python virtual environment and install dependencies (PyTorch, Transformers, bitsandbytes, etc.) as documented internally.  
-- Configure Hugging Face cache and model downloads per internal instructions.  
+- Create a Python virtual environment and install dependencies (PyTorch, Transformers, bitsandbytes, etc.).  
+- Configure Hugging Face cache and model downloads.  
 - Ensure required AST tooling (Clang / fparser) is installed and accessible.
 
 ### Agent Configuration
