@@ -8,6 +8,7 @@ import textwrap
 import time
 import requests
 from pathlib import Path
+import sys
 
 # ------------------------------------------------------------
 # Config
@@ -18,8 +19,8 @@ EXCLUDE_DIRS = {".git", "build", "CMakeFiles"}
 
 OLLAMA_EMBED_URL = "http://127.0.0.1:11434/api/embeddings"
 
-MAX_EMBED_CHARS = 6000        # HARD safety limit
-CODE_EMBED_LINES = 200        # AMReX-friendly
+MAX_EMBED_CHARS = 3000        # HARD safety limit
+CODE_EMBED_LINES = 80        # AMReX-friendly
 EMBED_RETRIES = 2
 RETRY_SLEEP = 1.0
 
@@ -118,7 +119,9 @@ def extract_chunks(file_path, example_name, example_root):
             i += 1
 
     # Fallback: whole file
+    
     if not chunks:
+        
         full_code = "\n".join(lines)
         code_for_embedding = "\n".join(lines[:CODE_EMBED_LINES])
 
