@@ -30,6 +30,9 @@ pip install --prefix=$SCRATCH/mistral-env torch torchvision torchaudio --index-u
 # Install Hugging Face libraries
 pip install --prefix=$SCRATCH/mistral-env transformers accelerate bitsandbytes huggingface_hub
 
+# Install required dependence sentencepiece
+pip install sentencepiece
+
 # Set PYTHONPATH (replace python3.10 with your Python version)
 export PYTHONPATH=$SCRATCH/mistral-env/lib/python3.10/site-packages:$PYTHONPATH
 
