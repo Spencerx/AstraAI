@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-def run_ollama(prompt, model, ollama_bin="ollama"):
+def run_ollama(prompt, model, ollama_bin):
     env = os.environ.copy()
     env["OLLAMA_TEMPERATURE"] = "0"
     env["OLLAMA_TOP_P"] = "1"

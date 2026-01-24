@@ -23,10 +23,9 @@ from llm import run_ollama
 from embeddings import get_embedding
 from rag import load_rag_metadata, retrieve_relevant_chunks
 from prompt_io import resolve_output_file
-from scaffold import copy_scaffold
+from scaffolding import copy_scaffold, handle_scaffolding
 from intent import get_user_intent
-from scaffold_state import scaffold_exists, write_scaffold_state
-from compiler_help import build_compilation_prompt
+from compilation import build_compilation_prompt, handle_compilation
 
 
 # ============================================================
@@ -122,6 +121,12 @@ def get_latest_open_pr() -> Optional[int]:
         headers=HEADERS,
         params={"state": "open", "sort": "created", "direction": "desc"},
     )
+
+    if r.status_code == 401:
+        raise RuntimeError(
+            "GitHub API 401 Unauthorized. Your GITHUB_TOKEN is missing or expired."
+        )
+
     r.raise_for_status()
     prs = r.json()
     return prs[0]["number"] if prs else None
@@ -192,6 +197,47 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
 def find_latest_comment(comments: List[ConversationComment]) -> Optional[ConversationComment]:
     return max(comments, key=lambda c: c.created_at) if comments else None
 
+
+def run_llm(prompt: str, pr: Optional[int]) -> str:
+    out = run_ollama(prompt, MODEL_NAME, OLLAMA_BIN)
+    if out is None:
+        emit_response(pr, "❌ LLM call failed.")
+        return ""
+    return out
+
+def write_output_file(output_file: str, content: str, pr: Optional[int]):
+    added_files = []
+    modified_files = {}
+
+    if not os.path.exists(output_file):
+        added_files.append(output_file)
+    else:
+        with open(output_file) as f:
+            old_lines = f.readlines()
+        new_lines = content.splitlines(keepends=True)
+        count = sum(1 for o, n in zip(old_lines, new_lines) if o != n)
+        count += abs(len(old_lines) - len(new_lines))
+        if count > 0:
+            modified_files[output_file] = count
+
+    with open(output_file, "w") as f:
+        f.write(content)
+
+    msg_lines = []
+    if added_files:
+        msg_lines.append("✅ Added files:\n" + "\n".join(f"- {f}" for f in added_files))
+    if modified_files:
+        msg_lines.append(
+            "✅ Modified files:\n"
+            + "\n".join(f"- {f}: {c} lines changed" for f, c in modified_files.items())
+        )
+    if not msg_lines:
+        msg_lines.append("⚠️ No changes were made to files.")
+
+    emit_response(pr, "\n".join(msg_lines))
+
+
+
 # ============================================================
 # ASTRAAI PROMPT EXTRACTOR
 # ============================================================
@@ -202,136 +248,38 @@ def extract_astraai_prompt(body: str) -> Optional[str]:
         return None
     return body[idx + len(marker):].strip()
 
-def handle_user_prompt(
-    *,
-    user_prompt: str,
-    pr: Optional[int],
-):
-    """
-    Core astraai pipeline.
-    `pr` is None in terminal mode.
-    """
+def handle_explanations(user_prompt: str, pr: Optional[int]):
+    pass
 
+
+def handle_code_generation(user_prompt: str, pr: Optional[int]):
+    pass
+
+
+def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
     log(f"Handling prompt: {user_prompt}")
 
-    # ----------------
-    # Determine intent
-    # ----------------
     intent = get_user_intent(user_prompt, MODEL_NAME, OLLAMA_BIN)
 
-    # ----------------
-    # Scaffolding
-    # ----------------
     if intent == "scaffolding":
-        if scaffold_exists():
-            log("[INFO] Scaffold already exists, skipping.")
-            emit_response(pr, "⚠️ Scaffold already exists. Skipping.")
-            return
+        return handle_scaffolding(user_prompt=user_prompt,
+                                  pr=pr,
+                                  log=log,
+                                  emit_response=emit_response,
+                                  hpc_examples_dir=HPC_CODE_EXAMPLES_DIR)
 
-        if not HPC_CODE_EXAMPLES_DIR:
-            log("[ERROR] hpc-code-examples-dir required for scaffolding")
-            emit_response(pr, "❌ hpc-code-examples-dir not configured.")
-            return
-
-        target_dir = "src"
-        os.makedirs(target_dir, exist_ok=True)
-
-        added_files = copy_scaffold(HPC_CODE_EXAMPLES_DIR, target_dir)
-
-        write_scaffold_state(
-            scaffold_type=os.path.basename(HPC_CODE_EXAMPLES_DIR),
-            intent=intent,
-            user_prompt=user_prompt,
-        )
-
-        files_list_str = "\n".join(f"- `{f}`" for f in added_files)
-        emit_response(
-            pr,
-            f"✅ Scaffold generated in `{target_dir}` with files:\n{files_list_str}",
-        )
-        return
-
-    # ----------------
-    # Compilation
-    # ----------------
     if intent == "compilation":
-        log("[INFO] Compilation error detected")
+        return handle_compilation(user_prompt=user_prompt,
+                                  pr=pr,
+                                  log=log,
+                                  run_llm=run_llm,
+                                  emit_response=emit_response)
 
-        prompt = build_compilation_prompt(user_prompt)
-        response = run_ollama(prompt, MODEL_NAME, ollama_bin=OLLAMA_BIN)
+    if intent == "explanations_suggestions":
+        return handle_explanations(user_prompt, pr)
 
-        if not response:
-            emit_response(pr, "❌ Failed to analyze compilation error.")
-            return
-
-        emit_response(
-            pr,
-            "### 🧩 Compilation diagnostics\n\n" + response,
-        )
-        return
-
-    # ----------------
-    # Code generation
-    # ----------------
-    output_file = resolve_output_file(user_prompt)
-
-    metadata = load_rag_metadata(RAG_DIR)
-    canonical_query = f"AMReX C++ code generation request: {user_prompt}"
-    query_embedding = get_embedding(canonical_query, MODEL_NAME, OLLAMA_BIN)
-    relevant_chunks = retrieve_relevant_chunks(query_embedding, metadata)
-    context = "\n\n".join(relevant_chunks)
-
-    prompt = f"""
-You are an AMReX expert C++ developer.
-
-Using the context below as reference examples and patterns,
-generate a complete, compilable source file.
-
-Context:
-{context}
-
-User request:
-{user_prompt}
-"""
-
-    code = run_ollama(prompt, MODEL_NAME)
-    if code is None:
-        emit_response(pr, "❌ Code generation failed.")
-        return
-
-    # Track file changes
-    added_files = []
-    modified_files = {}
-
-    if not os.path.exists(output_file):
-        added_files.append(output_file)
-    else:
-        with open(output_file) as f:
-            old_lines = f.readlines()
-        new_lines = code.splitlines(keepends=True)
-        count = sum(1 for o, n in zip(old_lines, new_lines) if o != n)
-        count += abs(len(old_lines) - len(new_lines))
-        if count > 0:
-            modified_files[output_file] = count
-
-    with open(output_file, "w") as f:
-        f.write(code)
-
-    msg_lines = []
-    if added_files:
-        msg_lines.append(
-            "✅ Added files:\n" + "\n".join(f"- {f}" for f in added_files)
-        )
-    if modified_files:
-        msg_lines.append(
-            "✅ Modified files with line counts:\n"
-            + "\n".join(f"- {f}: {c} lines changed" for f, c in modified_files.items())
-        )
-    if not msg_lines:
-        msg_lines.append("⚠️ No changes were made to files.")
-
-    emit_response(pr, "\n".join(msg_lines))
-
+    # default = code generation / editing
+    return handle_code_generation(user_prompt, pr)
 
 # ============================================================
 # MAIN WATCHER LOOP
@@ -394,4 +342,3 @@ while True:
 
     SEEN.add(latest.uid)
     time.sleep(POLL_INTERVAL)
-    continue
