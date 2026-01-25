@@ -8,10 +8,9 @@ def get_user_intent(user_prompt, model, ollama_bin):
 
     Possible intents:
     - scaffolding
-    - code_generation
-    - refactor
-    - explain
     - compilation
+    - analysis
+    - refactor
     """
 
     text = user_prompt.lower()
@@ -49,9 +48,10 @@ over code generation or refactoring.
 Choose EXACTLY ONE intent from:
 
 - scaffolding
+- compilation
+- analysis
 - code_generation
 - refactor
-- explain
 
 DECISION RULES (STRICT):
 1. If the user mentions AMReX AND any of the following words:
@@ -61,10 +61,9 @@ DECISION RULES (STRICT):
 2. If the user asks to modify or extend an EXISTING AMReX codebase
    (mentions files, classes, functions) → "code_generation" or "refactor"
 
-3. Only choose "explain" if the user explicitly says they only want an explanation
-   and does NOT want code or setup.
+3. If the user asks for code snippets, code suggestion, explanation, understanding, guidance, debugging help, or suggestions without asking to modify files → "analysis"
 
-When in doubt, choose "scaffolding".
+4. If the user asks for compilation error help or pastes a compilation error -> "compilation"
 
 Return ONLY valid JSON:
 {{"intent": "<one of the above>"}}

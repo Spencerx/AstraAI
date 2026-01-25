@@ -21,11 +21,11 @@ if parent_dir not in sys.path:
 # ============================================================
 from llm import run_ollama
 from embeddings import get_embedding
-from rag import load_rag_metadata, retrieve_relevant_chunks
-from prompt_io import resolve_output_file
-from scaffolding import copy_scaffold, handle_scaffolding
 from intent import get_user_intent
-from compilation import build_compilation_prompt, handle_compilation
+from scaffolding import handle_scaffolding, copy_scaffold
+from compilation import handle_compilation
+from analysis import handle_analysis, load_all_rag_metadata
+from prompt_io import resolve_output_file
 
 
 # ============================================================
@@ -34,9 +34,6 @@ from compilation import build_compilation_prompt, handle_compilation
 REPO = "AIModCon/repo-for-agent-testing"
 POLL_INTERVAL = 2  # seconds
 MODEL_NAME = "my-ollama-model"
-OLLAMA_BIN = "/pscratch/sd/n/nataraj2/AI_ModCon/GitHub/modcon-hpc/Tools/ollama/bin/ollama"
-RAG_DIR = "../AMReX_Testing/amrex-custom-tutorials/rag_metadata/"
-HPC_CODE_EXAMPLES_DIR = "/pscratch/sd/n/nataraj2/AI_ModCon/GitHub/AMReX_Testing/amrex-custom-tutorials/tutorials/MultiLevel_AmrCore_Scaffold"
 
 STATE_FILE = ".astraai_pr_watcher_state"
 
@@ -69,14 +66,23 @@ def parse_args():
     )
     parser.add_argument("--llm-model", type=str, default="my-ollama-model")
     parser.add_argument("--embed-model", type=str, default="nomic-embed-text")
-    parser.add_argument("--rag-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
+    parser.add_argument("--rag-metadata-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
     parser.add_argument("--hpc-code-examples-dir", type=str, default=None)
     parser.add_argument("--top-k", type=int, default=5)
-    parser.add_argument("--ollama-bin", type=str, default="/pscratch/.../ollama")
+    parser.add_argument("--ollama-bin", type=str, default=None)
     return parser.parse_args()
 
 ARGS = parse_args()
+RAG_METADATA_DIR = ARGS.rag_metadata_dir
+HPC_CODE_EXAMPLES_DIR = ARGS.hpc_code_examples_dir
+LLM_MODEL = ARGS.llm_model
+EMBED_MODEL = ARGS.embed_model
+TOP_K = ARGS.top_k
+OLLAMA_BIN = ARGS.ollama_bin
 TERMINAL_MODE = ARGS.terminal
+
+RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
+
 
 # ============================================================
 # LOGGING
@@ -260,6 +266,7 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
     log(f"Handling prompt: {user_prompt}")
 
     intent = get_user_intent(user_prompt, MODEL_NAME, OLLAMA_BIN)
+    print("The intent is ", intent)
 
     if intent == "scaffolding":
         return handle_scaffolding(user_prompt=user_prompt,
@@ -273,10 +280,19 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                   pr=pr,
                                   log=log,
                                   run_llm=run_llm,
-                                  emit_response=emit_response)
+                                  emit_response=emit_response)  
 
-    if intent == "explanations_suggestions":
-        return handle_explanations(user_prompt, pr)
+    if intent == "analysis":
+        
+        return handle_analysis(user_prompt=user_prompt,
+                               pr=pr,
+                               log=log,
+                               run_llm=run_llm,
+                               emit_response=emit_response,
+                               rag_metadata=RAG_METADATA,
+                               top_k=TOP_K,
+                               embed_model=EMBED_MODEL,
+                               ollama_bin=OLLAMA_BIN)
 
     # default = code generation / editing
     return handle_code_generation(user_prompt, pr)

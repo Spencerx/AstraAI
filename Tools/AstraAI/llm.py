@@ -1,26 +1,30 @@
 import os
 import subprocess
 
-def run_ollama(prompt, model, ollama_bin):
-    env = os.environ.copy()
-    env["OLLAMA_TEMPERATURE"] = "0"
-    env["OLLAMA_TOP_P"] = "1"
-    env["OLLAMA_TOP_K"] = "1"
-    env["OLLAMA_LOG"] = "0"
+import requests
 
-    proc = subprocess.Popen(
-        [ollama_bin, "run", model],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env,
-        universal_newlines=True
-    )
+def run_ollama(prompt: str, model: str, ollama_bin: str = None, seed: int = 42) -> str:
+    """
+    Run Ollama LLM deterministically via the /api/generate endpoint.
+    This avoids the nondeterminism of `ollama run` (streaming + multithreaded sampling).
+    """
 
-    stdout, stderr = proc.communicate(input=prompt)
-    if proc.returncode != 0:
-        print(f"[ERROR] Ollama failed:\n{stderr.strip() or stdout.strip()}")
-        return None
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0,
+            "top_p": 1,
+            "top_k": 1,
+            "seed": seed,
+            "num_thread": 1
+        }
+    }
 
-    return stdout.strip()
-
+    try:
+        r = requests.post("http://localhost:11434/api/generate", json=payload, timeout=300)
+        r.raise_for_status()
+        return r.json()["response"].strip()
+    except Exception as e:
+        raise RuntimeError(f"Ollama API call failed: {e}")
