@@ -49,9 +49,6 @@ def embed_text(text: str, model: str):
                 raise RuntimeError(f"Ollama embedding failed after retries: {e}")
             time.sleep(RETRY_SLEEP)
 
-# ------------------------------------------------------------
-# Extract chunks
-# ------------------------------------------------------------
 def extract_chunks(file_path, example_name, example_root):
     chunks = []
 
@@ -64,28 +61,60 @@ def extract_chunks(file_path, example_name, example_root):
     i = 0
     while i < len(lines):
         line = lines[i].lstrip()
-        if line.startswith("// FUNCTION:") or line.startswith("# FUNCTION:"):
-            function_desc = line.split(":", 1)[1].strip()
 
-            features = []
-            if i + 1 < len(lines):
-                nxt = lines[i + 1].lstrip()
-                if nxt.startswith("// FEATURES:") or nxt.startswith("# FEATURES:"):
-                    features = [
-                        f.strip()
-                        for f in nxt.split(":", 1)[1].split(",")
-                        if f.strip()
-                    ]
-                    i += 2
+        # --------------------------------------------------
+        # Detect FUNCTION header
+        # --------------------------------------------------
+        if line.startswith("// FUNCTION:") or line.startswith("# FUNCTION:"):
+
+            function_lines = []
+            features_lines = []
+
+            # First FUNCTION line
+            function_lines.append(line.split(":", 1)[1].strip())
+            i += 1
+
+            mode = "function"
+
+            # --------------------------------------------------
+            # Consume comment header block
+            # --------------------------------------------------
+            while i < len(lines):
+                cur = lines[i].lstrip()
+
+                # Stop when real code begins
+                if not (cur.startswith("//") or cur.startswith("#")):
+                    break
+
+                content = cur.lstrip("/#").strip()
+
+                if content.startswith("FEATURES:"):
+                    mode = "features"
+                    features_lines.append(content.split(":", 1)[1].strip())
                 else:
-                    i += 1
-            else:
+                    if mode == "function":
+                        function_lines.append(content)
+                    else:
+                        features_lines.append(content)
+
                 i += 1
 
+            function_desc = " ".join(function_lines).strip()
+
+            # Parse features
+            features = []
+            for fl in features_lines:
+                for f in fl.split(","):
+                    if f.strip():
+                        features.append(f.strip())
+
+            # --------------------------------------------------
+            # Collect actual code (UNCHANGED LOGIC)
+            # --------------------------------------------------
             code_lines = []
             while i < len(lines):
-                if lines[i].lstrip().startswith("// FUNCTION:") or \
-                   lines[i].lstrip().startswith("# FUNCTION:"):
+                nxt = lines[i].lstrip()
+                if nxt.startswith("// FUNCTION:") or nxt.startswith("# FUNCTION:"):
                     break
                 code_lines.append(lines[i])
                 i += 1
@@ -112,16 +141,17 @@ def extract_chunks(file_path, example_name, example_root):
                 "embedding_text": (
                     f"FUNCTION:\n{function_desc}\n\n"
                     f"FEATURES:\n{', '.join(features)}\n\n"
-                    f"CODE:\n{code_for_embedding}"
+                    f"CODE:\n{code_lines[:10]}"  # just the first few lines
                 )
             })
+
         else:
             i += 1
 
+    # --------------------------------------------------
     # Fallback: whole file
-    
+    # --------------------------------------------------
     if not chunks:
-        
         full_code = "\n".join(lines)
         code_for_embedding = "\n".join(lines[:CODE_EMBED_LINES])
 
@@ -142,11 +172,14 @@ def extract_chunks(file_path, example_name, example_root):
                 "language": "txt"
             },
             "embedding_text": (
-                f"FILE:\n{file_path.name}\n\nCODE:\n{code_for_embedding}"
+                f"FUNCTION:\n{function_desc}\n\n"
+                f"FEATURES:\n{', '.join(features)}\n"
             )
         })
 
     return chunks
+
+
 
 # ------------------------------------------------------------
 # Main
