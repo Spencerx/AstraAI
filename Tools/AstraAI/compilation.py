@@ -1,25 +1,29 @@
 from typing import Optional, Callable
 
 def build_compilation_prompt(compiler_output: str) -> str:
-    """
-    Build an LLM prompt for diagnosing compilation / linker errors.
-    """
     return (
-        "You are an expert C++ / HPC / AMReX developer.\n\n"
-        "The following is compiler and linker output from a build.\n\n"
-        "Your task:\n"
-        "- Identify the ROOT CAUSE of the error\n"
-        "- Explain WHY it is happening\n"
-        "- Provide concrete steps to fix it\n"
-        "- If relevant, suggest CMake / Makefile changes\n"
-        "- Do NOT rewrite entire files\n\n"
-        "Compiler output:\n"
-        "----------------\n"
-        f"{compiler_output}\n"
-        "----------------\n\n"
-        "Respond with clear, actionable guidance.\n"
-    )
+    "You are an expert C++ / HPC / AMReX developer.\n\n"
+    "You will be given compiler or linker errors.\n"
+    "Your job is to diagnose and fix them with MINIMAL text.\n\n"
 
+    "OUTPUT FORMAT (strictly follow):\n"
+    "ROOT CAUSE: <one sentence>\n"
+    "FIX: <exact code change or build change>\n"
+    "WHY: <one short sentence>\n\n"
+
+    "Rules:\n"
+    "- Be extremely concise.\n"
+    "- No paragraphs.\n"
+    "- No long explanations.\n"
+    "- No restating the compiler output.\n"
+    "- Do NOT rewrite entire files.\n"
+    "- Assume the user is an experienced HPC developer.\n\n"
+
+    "Compiler output:\n"
+    "----------------\n"
+    f"{compiler_output}\n"
+    "----------------\n"
+)
 def handle_compilation(
     *,
     user_prompt: str,
