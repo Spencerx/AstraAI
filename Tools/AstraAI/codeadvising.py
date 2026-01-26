@@ -146,7 +146,7 @@ CODE:
     # --------------------------------------------------
     return "\n\n".join(contexts)
 
-def handle_analysis(
+def handle_code_suggestions(
     *,
     user_prompt: str,
     pr: Optional[int],
@@ -178,7 +178,7 @@ def handle_analysis(
 
 
     # -----------------------------
-    # Build codegen prompt
+    # Build code advising prompt
     # -----------------------------
     prompt = f"""
 You are an AMReX expert

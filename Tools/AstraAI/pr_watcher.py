@@ -24,7 +24,7 @@ from embeddings import get_embedding
 from intent import get_user_intent
 from scaffolding import handle_scaffolding, copy_scaffold
 from compilation import handle_compilation
-from analysis import handle_analysis, load_all_rag_metadata
+from codeadvising import handle_code_suggestions, load_all_rag_metadata
 from prompt_io import resolve_output_file
 
 
@@ -282,9 +282,9 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                   run_llm=run_llm,
                                   emit_response=emit_response)  
 
-    if intent == "analysis":
+    if intent == "codeadvising":
         
-        return handle_analysis(user_prompt=user_prompt,
+        return handle_code_suggestions(user_prompt=user_prompt,
                                pr=pr,
                                log=log,
                                run_llm=run_llm,

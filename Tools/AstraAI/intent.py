@@ -9,7 +9,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
     Possible intents:
     - scaffolding
     - compilation
-    - analysis
+    - codeadvising
     - refactor
     """
 
@@ -49,7 +49,7 @@ Choose EXACTLY ONE intent from:
 
 - scaffolding
 - compilation
-- analysis
+- codeadvising
 - code_generation
 - refactor
 
@@ -58,10 +58,8 @@ DECISION RULES (STRICT):
    "start", "port", "convert", "migrate", "new", "begin"
    → intent MUST be "scaffolding"
 
-2. If the user asks to modify or extend an EXISTING AMReX codebase
-   (mentions files, classes, functions) → "code_generation" or "refactor"
-
-3. If the user asks for code snippets, code suggestion, explanation, understanding, guidance, debugging help, or suggestions without asking to modify files → "analysis"
+2. If the user requests for code snippets, code suggestion, explanation, without asking to modify files → "codeadvising"
+   If user says "I want some suggestions or code ideas or examples etc." -> codeadvising
 
 4. If the user asks for compilation error help or pastes a compilation error -> "compilation"
 
