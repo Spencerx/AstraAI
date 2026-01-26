@@ -146,7 +146,7 @@ CODE:
     # --------------------------------------------------
     return "\n\n".join(contexts)
 
-def handle_code_suggestions(
+def handle_codeadvising(
     *,
     user_prompt: str,
     pr: Optional[int],
@@ -183,8 +183,10 @@ def handle_code_suggestions(
     prompt = f"""
 You are an AMReX expert
 
-If user asks for code snippets or suggestions, provide the necessary functions from the below context
+If user asks for code snippets or suggestions, provide **all** the necessary functions from the below context.
+All functions that match the user prompt should be provided.
 You are FORBIDDEN from inventing any new API, header, class, or function.
+
 
 ---------------- REFERENCE CODE ----------------
 {context}

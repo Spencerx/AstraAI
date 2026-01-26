@@ -4,33 +4,6 @@ import os
 import numpy as np
 from typing import List, Dict, Any, Optional, Callable
 
-def load_all_rag_metadata(rag_dir: str):
-    metadata = []
-
-    json_files = sorted(f for f in os.listdir(rag_dir) if f.endswith(".json"))
-    if not json_files:
-        raise FileNotFoundError(f"No JSON files found in {rag_dir}")
-
-    for jf in json_files:
-        path = os.path.join(rag_dir, jf)
-        with open(path, "r") as f:
-            data = json.load(f)
-
-        chunks = data["chunks"] if isinstance(data, dict) else data
-
-        for chunk in chunks:
-            emb = chunk.get("embedding")
-            if emb is None:
-                continue
-            if isinstance(emb, str):
-                emb = json.loads(emb)
-
-            chunk["embedding"] = np.array(emb, dtype=np.float64)
-            metadata.append(chunk)
-
-    print(f"[RAG] Loaded {len(metadata)} chunks from {rag_dir}")
-    return metadata
-
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     denom = np.linalg.norm(a) * np.linalg.norm(b)
     if denom == 0.0:
@@ -146,7 +119,7 @@ CODE:
     # --------------------------------------------------
     return "\n\n".join(contexts)
 
-def handle_code_suggestions(
+def handle_explaining(
     *,
     user_prompt: str,
     pr: Optional[int],

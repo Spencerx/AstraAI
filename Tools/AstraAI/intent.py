@@ -10,6 +10,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
     - scaffolding
     - compilation
     - codeadvising
+    - explaining
     - refactor
     """
 
@@ -50,18 +51,32 @@ Choose EXACTLY ONE intent from:
 - scaffolding
 - compilation
 - codeadvising
+- explaining
 - code_generation
 - refactor
 
 DECISION RULES (STRICT):
 1. If the user mentions AMReX AND any of the following words:
-   "start", "port", "convert", "migrate", "new", "begin"
+   "start working with", "port my exsiting code", "convert", "migrate my code into", "understand how this works",
    → intent MUST be "scaffolding"
 
-2. If the user requests for code snippets, code suggestion, explanation, without asking to modify files → "codeadvising"
+2. If the user requests for code snippets, code suggestion, without asking to modify files → "codeadvising"
    If user says "I want some suggestions or code ideas or examples etc." -> codeadvising
+   If the user says "Give a sample code" -> codeadvising
 
-4. If the user asks for compilation error help or pastes a compilation error -> "compilation"
+3. If the user says "Give a sample code and explain " -> "codeadvising"
+   You **must** give relevant code snippets to the user in your response.
+
+4. If the user requests for explaining code without asking for code snippets -> "explaining"
+
+5. If user asks "Can you tell me what this function does" or "Can ypu explain" 
+
+6. If the user simply posts a piece of code -> "explaining"
+
+7. If the user asks to modify files directly or extend an EXISTING AMReX codebase
+   (mentions files, classes, functions) → "code_generation" or "refactor"
+
+8. If the user asks for compilation error help or pastes a compilation error -> "compilation"
 
 Return ONLY valid JSON:
 {{"intent": "<one of the above>"}}
