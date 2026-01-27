@@ -59,68 +59,83 @@ def extract_chunks(file_path, example_name, example_root):
         return chunks
 
     i = 0
-    while i < len(lines):
-        line = lines[i].lstrip()
+    n = len(lines)
+
+    while i < n:
+        line = lines[i].strip()
 
         # --------------------------------------------------
-        # Detect FUNCTION header
+        # Detect metadata start
         # --------------------------------------------------
-        if line.startswith("// FUNCTION:") or line.startswith("# FUNCTION:"):
+        if line.startswith("! PURPOSE:"):
 
-            function_lines = []
-            features_lines = []
+            purpose_lines = [line.split(":", 1)[1].strip()]
+            keywords = []
+            context_lines = []
 
-            # First FUNCTION line
-            function_lines.append(line.split(":", 1)[1].strip())
             i += 1
 
-            mode = "function"
+            # ---------------- Parse metadata block ----------------
+            while i < n:
+                cur = lines[i].strip()
 
-            # --------------------------------------------------
-            # Consume comment header block
-            # --------------------------------------------------
-            while i < len(lines):
-                cur = lines[i].lstrip()
+                if cur.startswith("! KEYWORDS:"):
+                    kws = cur.split(":", 1)[1]
+                    keywords.extend([k.strip() for k in kws.split(",") if k.strip()])
 
-                # Stop when real code begins
-                if not (cur.startswith("//") or cur.startswith("#")):
-                    break
+                elif cur.startswith("! CONTEXT:"):
+                    context_lines.append(cur.split(":", 1)[1].strip())
 
-                content = cur.lstrip("/#").strip()
-
-                if content.startswith("FEATURES:"):
-                    mode = "features"
-                    features_lines.append(content.split(":", 1)[1].strip())
-                else:
-                    if mode == "function":
-                        function_lines.append(content)
+                elif cur.startswith("!"):
+                    txt = cur[1:].strip()
+                    if context_lines:
+                        context_lines.append(txt)
                     else:
-                        features_lines.append(content)
+                        purpose_lines.append(txt)
+                else:
+                    break
 
                 i += 1
 
-            function_desc = " ".join(function_lines).strip()
+            purpose = " ".join(purpose_lines)
+            context = " ".join(context_lines)
 
-            # Parse features
-            features = []
-            for fl in features_lines:
-                for f in fl.split(","):
-                    if f.strip():
-                        features.append(f.strip())
+            # ---------------- Find module procedure safely ----------------
+            proc_name = None
+            search_i = i
+            while search_i < n:
+                s = lines[search_i].strip().lower()
 
-            # --------------------------------------------------
-            # Collect actual code (UNCHANGED LOGIC)
-            # --------------------------------------------------
-            code_lines = []
-            while i < len(lines):
-                nxt = lines[i].lstrip()
-                if nxt.startswith("// FUNCTION:") or nxt.startswith("# FUNCTION:"):
+                if s.startswith("! purpose:"):
+                    break  # next block, abort
+
+                if "module procedure" in s:
+                    proc_name = lines[search_i].strip().split()[-1]
                     break
+
+                search_i += 1
+
+            if not proc_name:
+                i = search_i
+                continue
+
+            # Move i to line after module procedure
+            i = search_i + 1
+
+            # ---------------- Collect code ----------------
+            code_lines = []
+            while i < n:
+                s = lines[i].strip().lower()
+
+                # Stop only if a NEW metadata block begins
+                if s.startswith("! purpose:"):
+                    break
+
                 code_lines.append(lines[i])
                 i += 1
 
-            full_code = textwrap.dedent("\n".join(code_lines))
-            code_for_embedding = "\n".join(code_lines[:CODE_EMBED_LINES])
+            full_code = "\n".join(code_lines)
+            code_for_embedding = "\n".join(code_lines[:40])
 
             try:
                 rel_path = str(file_path.relative_to(example_root))
@@ -132,54 +147,26 @@ def extract_chunks(file_path, example_name, example_root):
                 "text": full_code,
                 "metadata": {
                     "example": example_name,
-                    "function": function_desc,
-                    "features": features,
+                    "procedure": proc_name,
+                    "purpose": purpose,
+                    "keywords": keywords,
+                    "context": context,
                     "source_file": file_path.name,
                     "relative_path": rel_path,
-                    "language": "cpp" if file_path.suffix else "txt"
+                    "language": "fortran"
                 },
                 "embedding_text": (
-                    f"FUNCTION:\n{function_desc}\n\n"
-                    f"FEATURES:\n{', '.join(features)}\n\n"
-                    f"CODE:\n{code_lines[:10]}"  # just the first few lines
+                    f"PURPOSE:\n{purpose}\n\n"
+                    f"KEYWORDS:\n{', '.join(keywords)}\n\n"
+                    f"CONTEXT:\n{context}\n\n"
+                    f"CODE:\n{code_for_embedding}"
                 )
             })
 
         else:
             i += 1
 
-    # --------------------------------------------------
-    # Fallback: whole file
-    # --------------------------------------------------
-    if not chunks:
-        full_code = "\n".join(lines)
-        code_for_embedding = "\n".join(lines[:CODE_EMBED_LINES])
-
-        try:
-            rel_path = str(file_path.relative_to(example_root))
-        except ValueError:
-            rel_path = file_path.name
-
-        chunks.append({
-            "id": str(uuid.uuid4()),
-            "text": full_code,
-            "metadata": {
-                "example": example_name,
-                "function": "full file",
-                "features": [],
-                "source_file": file_path.name,
-                "relative_path": rel_path,
-                "language": "txt"
-            },
-            "embedding_text": (
-                f"FUNCTION:\n{function_desc}\n\n"
-                f"FEATURES:\n{', '.join(features)}\n"
-            )
-        })
-
     return chunks
-
-
 
 # ------------------------------------------------------------
 # Main
