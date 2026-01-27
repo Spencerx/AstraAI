@@ -4,11 +4,9 @@ import os
 import json
 import uuid
 import argparse
-import textwrap
 import time
 import requests
 from pathlib import Path
-import sys
 
 # ------------------------------------------------------------
 # Config
@@ -20,9 +18,10 @@ EXCLUDE_DIRS = {".git", "build", "CMakeFiles"}
 OLLAMA_EMBED_URL = "http://127.0.0.1:11434/api/embeddings"
 
 MAX_EMBED_CHARS = 3000        # HARD safety limit
-CODE_EMBED_LINES = 80        # AMReX-friendly
+CODE_EMBED_LINES = 80
 EMBED_RETRIES = 2
 RETRY_SLEEP = 1.0
+
 
 # ------------------------------------------------------------
 # Ollama embedding
@@ -49,6 +48,10 @@ def embed_text(text: str, model: str):
                 raise RuntimeError(f"Ollama embedding failed after retries: {e}")
             time.sleep(RETRY_SLEEP)
 
+
+# ------------------------------------------------------------
+# Fortran metadata extractor
+# ------------------------------------------------------------
 def extract_chunks(file_path, example_name, example_root):
     chunks = []
 
@@ -58,122 +61,106 @@ def extract_chunks(file_path, example_name, example_root):
         print(f"[WARN] Skipping {file_path}: {e}")
         return chunks
 
-    i = 0
-    n = len(lines)
+    # Find all indices where a line starts with "! PURPOSE:"
+    purpose_indices = [i for i, line in enumerate(lines) if line.strip().lower().startswith("! purpose:")]
 
-    while i < n:
-        line = lines[i].strip()
+    for idx, start_i in enumerate(purpose_indices):
+        # End index is next purpose line or end of file
+        end_i = purpose_indices[idx + 1] if idx + 1 < len(purpose_indices) else len(lines)
 
-        # --------------------------------------------------
-        # Detect metadata start
-        # --------------------------------------------------
-        if line.startswith("! PURPOSE:"):
+        block_lines = lines[start_i:end_i]
 
-            purpose_lines = [line.split(":", 1)[1].strip()]
-            keywords = []
-            context_lines = []
+        # Parse metadata
+        purpose_lines = []
+        keywords = []
+        context_lines = []
+        code_lines = []
 
-            i += 1
+        i = 0
+        n = len(block_lines)
 
-            # ---------------- Parse metadata block ----------------
-            while i < n:
-                cur = lines[i].strip()
+        # First line contains PURPOSE
+        first_line = block_lines[0].strip()
+        purpose_lines.append(first_line.split(":", 1)[1].strip())
+        i += 1
 
-                if cur.startswith("! KEYWORDS:"):
-                    kws = cur.split(":", 1)[1]
-                    keywords.extend([k.strip() for k in kws.split(",") if k.strip()])
+        # Parse metadata lines (! KEYWORDS, ! CONTEXT, or continuation !)
+        while i < n:
+            line = block_lines[i].strip()
+            line_low = line.lower()
 
-                elif cur.startswith("! CONTEXT:"):
-                    context_lines.append(cur.split(":", 1)[1].strip())
+            if line_low.startswith("! keywords:"):
+                kws = line.split(":", 1)[1]
+                keywords.extend([k.strip() for k in kws.split(",") if k.strip()])
 
-                elif cur.startswith("!"):
-                    txt = cur[1:].strip()
-                    if context_lines:
-                        context_lines.append(txt)
-                    else:
-                        purpose_lines.append(txt)
+            elif line_low.startswith("! context:"):
+                context_lines.append(line.split(":", 1)[1].strip())
+
+            elif line.startswith("!"):
+                txt = line[1:].strip()
+                if context_lines:
+                    context_lines.append(txt)
                 else:
-                    break
+                    purpose_lines.append(txt)
+            else:
+                break
 
-                i += 1
-
-            purpose = " ".join(purpose_lines)
-            context = " ".join(context_lines)
-
-            # ---------------- Find module procedure safely ----------------
-            proc_name = None
-            search_i = i
-            while search_i < n:
-                s = lines[search_i].strip().lower()
-
-                if s.startswith("! purpose:"):
-                    break  # next block, abort
-
-                if "module procedure" in s:
-                    proc_name = lines[search_i].strip().split()[-1]
-                    break
-
-                search_i += 1
-
-            if not proc_name:
-                i = search_i
-                continue
-
-            # Move i to line after module procedure
-            i = search_i + 1
-
-            # ---------------- Collect code ----------------
-            code_lines = []
-            while i < n:
-                s = lines[i].strip().lower()
-
-                # Stop only if a NEW metadata block begins
-                if s.startswith("! purpose:"):
-                    break
-
-                code_lines.append(lines[i])
-                i += 1
-
-            full_code = "\n".join(code_lines)
-            code_for_embedding = "\n".join(code_lines[:40])
-
-            try:
-                rel_path = str(file_path.relative_to(example_root))
-            except ValueError:
-                rel_path = file_path.name
-
-            chunks.append({
-                "id": str(uuid.uuid4()),
-                "text": full_code,
-                "metadata": {
-                    "example": example_name,
-                    "procedure": proc_name,
-                    "purpose": purpose,
-                    "keywords": keywords,
-                    "context": context,
-                    "source_file": file_path.name,
-                    "relative_path": rel_path,
-                    "language": "fortran"
-                },
-                "embedding_text": (
-                    f"PURPOSE:\n{purpose}\n\n"
-                    f"KEYWORDS:\n{', '.join(keywords)}\n\n"
-                    f"CONTEXT:\n{context}\n\n"
-                    f"CODE:\n{code_for_embedding}"
-                )
-            })
-
-        else:
             i += 1
+
+        # The rest is code
+        code_lines = block_lines[i:]
+
+        # Try to find a module procedure name (if any)
+        proc_name = None
+        for line in code_lines:
+            if "module procedure" in line.lower():
+                tokens = line.replace("&", "").split()
+                proc_name = tokens[-1]
+                break
+
+        full_code = "\n".join(code_lines)
+        code_for_embedding = "\n".join(code_lines[:CODE_EMBED_LINES])
+
+        try:
+            rel_path = str(file_path.relative_to(example_root))
+        except ValueError:
+            rel_path = file_path.name
+
+        # Prepare embedding text safely
+        code_snippet = code_for_embedding
+        embedding_text = (
+            f"PURPOSE:\n{' '.join(purpose_lines)}\n\n"
+            f"KEYWORDS:\n{', '.join(keywords)}\n\n"
+            f"CONTEXT:\n{' '.join(context_lines)}\n\n"
+            "CODE:\n" + code_snippet
+        )
+
+        chunks.append({
+            "id": str(uuid.uuid4()),
+            "text": full_code,
+            "metadata": {
+                "example": example_name,
+                "procedure": proc_name,
+                "purpose": " ".join(purpose_lines),
+                "keywords": keywords,
+                "context": " ".join(context_lines),
+                "source_file": file_path.name,
+                "relative_path": rel_path,
+                "language": "fortran"
+            },
+            "embedding_text": embedding_text,
+            "code_lines": code_lines  # Keep full code lines for debugging if needed
+        })
 
     return chunks
+
 
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract AMReX RAG metadata with embeddings"
+        description="Extract Fortran RAG metadata with embeddings"
     )
     parser.add_argument("--code-dir", required=True)
     parser.add_argument("--out-dir", required=True)
@@ -222,6 +209,7 @@ def main():
         json.dump(metadata, f, indent=2)
 
     print(f"[OK] Wrote {embedded} embeddings → {output_file}")
+
 
 if __name__ == "__main__":
     main()
