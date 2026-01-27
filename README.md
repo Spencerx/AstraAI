@@ -9,6 +9,7 @@ The installation has to be done in a directory with enough space (~2 TB).
 
 ```bash
 # Create a folder for your environment and set up a virtual environment
+module load python (or equivalent)
 mkdir -p modcon-env
 python -m venv modcon-env
 
