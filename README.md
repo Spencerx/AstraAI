@@ -28,7 +28,7 @@ pip install --prefix=modcon-env transformers accelerate bitsandbytes huggingface
 pip install sentencepiece
 
 # Set PYTHONPATH (replace python3.10 with your Python version)
-export PYTHONPATH=modcon-env/lib/python3.10/site-packages:$PYTHONPATH
+export PYTHONPATH=<path-to-modcon-env>/lib/python3.10/site-packages:$PYTHONPATH
 
 # Verify installation
 python -c "import torch; print(torch.cuda.is_available())"
