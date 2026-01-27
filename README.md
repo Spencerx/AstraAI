@@ -71,7 +71,7 @@ If you don’t already have one, go to [https://huggingface.co/join](https://hug
 In your terminal (inside your virtual environment), run:
 
 ```bash
-huggingface-cli login
+hf auth login
 ```
 Enter the token to login
 
