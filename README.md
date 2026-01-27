@@ -14,19 +14,16 @@ mkdir -p modcon-env
 python -m venv modcon-env
 
 # Activate the environment
-source modcon-env/bin/activate
+source <path-to-modcon-env>/bin/activate
 
 # Upgrade pip
 pip install --upgrade pip
 
 # Install PyTorch with CUDA support
-pip install --prefix=modcon-env torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install --prefix=<path-to-modcon-env> torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 
 
 # Install Hugging Face libraries
-pip install --prefix=modcon-env transformers accelerate bitsandbytes huggingface_hub
-
-# Install required dependence sentencepiece
-pip install sentencepiece
+pip install --prefix=<path-to-modcon-env> transformers accelerate bitsandbytes huggingface_hub sentencepiece
 
 # Set PYTHONPATH (replace python3.10 with your Python version)
 export PYTHONPATH=<path-to-modcon-env>/lib/python3.10/site-packages:$PYTHONPATH
