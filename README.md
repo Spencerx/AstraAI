@@ -15,7 +15,6 @@ python -m venv modcon-env
 # Activate the environment
 source modcon-env/bin/activate
 
-
 # Upgrade pip
 pip install --upgrade pip
 
