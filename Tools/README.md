@@ -10,7 +10,7 @@ This document describes how to:
 ## 1. Get llama.cpp in the current directory
 This is a framework that is required to convert the LLM to a specific format that is needed by the 
 LLM runtime (See Step 2 below). 
-Run the provided script to clone and build `llama.cpp`:
+Run the provided script to clone and build `llama.cpp` in the directory of your choice:
 
     sh get_llama_cpp.sh
 
@@ -22,14 +22,14 @@ Note: This step currently works out of the box only on Perlmutter. The `llama.cp
 ## 2. Install and configure Ollama
 Ollama is a LLM runtime -- a local engine that runs language models (like GPT) on your machine or server so you can send prompts and get completions, without going through the cloud. It keeps the LLM loaded, and hence it acts like a web based chatbot, but on the terminal.
 
-Run the Ollama install script:
+Run the Ollama install script in the directory of your choice:
 
     sh get_ollama.sh
 
 Add the following lines to `~/.bash_profile`:
 
     alias ollama=<path-to-ollama>/bin/ollama
-    export OLLAMA_MODELS=<path-in-scratch-for-ollama-model-storage>
+    export OLLAMA_MODELS=<path-for-ollama-model-storage>
 
 Reload the profile so the changes take effect:
 
