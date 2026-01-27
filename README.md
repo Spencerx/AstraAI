@@ -1,54 +1,55 @@
 # AI4HPC using LLMs on Linux machines
 This repository is aimed at developing a framework using large language models (LLM) 
-on Linux machines and performing inference, RAG, Agentic AI, domain adaptive pre-training (DAPT), and fine-tuning. 
+on Linux machines and performing inference, RAG, Agentic AI, and fine-tuning. 
 
 # 1. Environment Setup on Linux
 
 This README sets up a Python environment for running LLM models on a Linux filesystem. 
-The Perlmutter scratch is chosen to do the installation.
+The installation has to be done in a directory with enough space (~2 TB). 
 
 ```bash
 # Create a folder for your environment and set up a virtual environment
-mkdir -p $SCRATCH/mistral-env
-python -m venv $SCRATCH/mistral-env
+mkdir -p modcon-env
+python -m venv modcon-env
 
 # Activate the environment
-source $SCRATCH/mistral-env/bin/activate
+source modcon-env/bin/activate
 
-# Configure Hugging Face cache
-# Add the following to ~/.bash_profile
-export HF_HOME=$SCRATCH/huggingface
-source ~/.bash_profile
-mkdir -p $HF_HOME
 
 # Upgrade pip
 pip install --upgrade pip
 
 # Install PyTorch with CUDA support
-pip install --prefix=$SCRATCH/mistral-env torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install --prefix=modcon-env torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Install Hugging Face libraries
-pip install --prefix=$SCRATCH/mistral-env transformers accelerate bitsandbytes huggingface_hub
+pip install --prefix=modcon-env transformers accelerate bitsandbytes huggingface_hub
 
 # Install required dependence sentencepiece
 pip install sentencepiece
 
 # Set PYTHONPATH (replace python3.10 with your Python version)
-export PYTHONPATH=$SCRATCH/mistral-env/lib/python3.10/site-packages:$PYTHONPATH
+export PYTHONPATH=modcon-env/lib/python3.10/site-packages:$PYTHONPATH
 
 # Verify installation
 python -c "import torch; print(torch.cuda.is_available())"
 python -c "import transformers; print(transformers.__version__)"
 
-# Login to Hugging Face (see next section for details)
-huggingface-cli login
+# Configure Hugging Face cache
+# Add the following to ~/.bash_profile
+export HF_HOME=<path-to-modcon-env>/huggingface/cache
+source ~/.bash_profile
+mkdir -p $HF_HOME
 
-# Download the Mistral model
-huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <dir-to-install> --local-dir-use-symlinks False
+# Login to Hugging Face (see next section for details for hugging face authentication)
+hf auth login
 
-# Optionally, set Hugging Face home to a persistent location
-export HF_HOME=<path-to-hugging-face>/.hf
-```
+# Create a directory to store the hugging face models
+mkdir <path-to-modcon-env>/huggingface/models
+
+# Download the model of your choice from hugging face
+# For example, to download the Mistral 7B model
+hf download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <path-to-modcon-env>/huggingface/models/<dir-to-install> 
 
 ## Hugging Face Authentication
 
