@@ -23,7 +23,7 @@ pip install --upgrade pip
 pip install --prefix=<path-to-modcon-env> torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 
 
 # Install Hugging Face libraries
-pip install --prefix=<path-to-modcon-env> transformers accelerate bitsandbytes huggingface_hub sentencepiece
+pip install --prefix=<path-to-modcon-env> transformers accelerate bitsandbytes huggingface_hub sentencepiece requests
 
 # Set PYTHONPATH (replace python3.10 with your Python version)
 export PYTHONPATH=<path-to-modcon-env>/lib/python3.10/site-packages:$PYTHONPATH
@@ -34,7 +34,7 @@ python -c "import transformers; print(transformers.__version__)"
 
 # Configure Hugging Face cache
 # Add the following to ~/.bash_profile
-export HF_HOME=<path-to-modcon-env>/huggingface/cache
+export HF_HOME=<path-to-huggingface>/cache
 source ~/.bash_profile
 mkdir -p $HF_HOME
 
@@ -42,11 +42,11 @@ mkdir -p $HF_HOME
 hf auth login
 
 # Create a directory to store the hugging face models
-mkdir <path-to-modcon-env>/huggingface/models
+mkdir <path-to-huggingface>/models
 
 # Download the model of your choice from hugging face
 # For example, to download the Mistral 7B model
-hf download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <path-to-modcon-env>/huggingface/models/<dir-to-install> 
+hf download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <path-to-huggingface>/models/<dir-to-install> 
 ```
 
 ## Hugging Face Authentication
