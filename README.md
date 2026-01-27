@@ -49,6 +49,7 @@ mkdir <path-to-modcon-env>/huggingface/models
 # Download the model of your choice from hugging face
 # For example, to download the Mistral 7B model
 hf download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <path-to-modcon-env>/huggingface/models/<dir-to-install> 
+```
 
 ## Hugging Face Authentication
 
