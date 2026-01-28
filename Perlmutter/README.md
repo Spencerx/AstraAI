@@ -46,3 +46,6 @@ After the server finishes initializing, press **Enter** to return to the command
 Now, the terminal behaves like a chatbot, and the user can type the prompt and get the response.
 
 
+## How to perform inference with LLM + RAG?
+Once steps 1 and 2 above are done follow the steps in the [Inference with LLM + RAG](https://github.com/AIModCon/modcon-hpc/tree/main/RAG#inference-with-llm--rag) section.
+
