@@ -37,7 +37,7 @@ salloc --nodes 1 \
 2. Once on the node, initialize the environment and start the Ollama server:
 ```
 source ~/.bash_profile
-source <path-to-modcon-env>/bin/activate
+source $MODCON_ENV/bin/activate
 ollama serve &
 ```
 
