@@ -52,7 +52,7 @@ python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
 --rag-metadata-dir=<path-to-dir-with-json-file-with-rag-chunks> \
 --top-k=2 \
 --ollama-bin=<path-to-ollama/bin/ollama> \
---git-repo=<path-to-gi-repo>
+--git-repo=<path-to-git-repo>
 ```
 
 - The `--llm-modelfile-for-ollama` is what was created using [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#2-load-the-model-into-ollama)  
