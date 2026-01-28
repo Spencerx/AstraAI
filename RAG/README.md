@@ -25,9 +25,9 @@ python3 <path-to-RAG/extract_RAG_metadata.py> \
 --code-dir=<path-to-code-source-dir> \
 --out-dir=<output-dir-for-rag-json-file>  
 ```
-Note: Ollama has the `all-minilm` embedding model within it.  
-`path-to-code-source-dir` is the path to the source code directory (all `*.cpp`, `*.f90`,`*.F90`, `*,h`, `*.H` files are parsed to extract RAG chunks).  
-`<output-dir-for-rag-json-file>` is the path to the directory to write the `*.json` file that will store the RAG chunks.
+- Note: Ollama has the `all-minilm` embedding model within it.  
+- `path-to-code-source-dir` is the path to the source code directory (all `*.cpp`, `*.f90`,`*.F90`, `*,h`, `*.H` files are parsed to extract RAG chunks).  
+- `<output-dir-for-rag-json-file>` is the path to the directory to write the `*.json` file that will store the RAG chunks.
 
 3. Run the python script for RAG.  
 The following command is to run on terminal mode (`--terminal` option at the end of the command). The user prompt is given in a text file `user_prompt.txt`.  
