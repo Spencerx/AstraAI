@@ -26,19 +26,19 @@ For example `mistral7b-for-ollama`. The user can perform inference and all other
 
 1. Request an interactive GPU node:
 ```
-    salloc --nodes 1 \
-           --qos interactive \
-           --time 04:00:00 \
-           --constraint gpu \
-           --gpus 1 \
-           --account=<account-id>
+salloc --nodes 1 \
+       --qos interactive \
+       --time 04:00:00 \
+       --constraint gpu \
+       --gpus 1 \
+       --account=<account-id>
 ```
 
 2. Once on the node, initialize the environment and start the Ollama server:
 ```
-    source ~/.bash_profile
-    source <path-to-modcon-env>/bin/activate
-    ollama serve &
+source ~/.bash_profile
+source <path-to-modcon-env>/bin/activate
+ollama serve &
 ```
 
 `<path-to-modcon-env>` is the path to the environment created in [Step 1 here](https://github.com/AIModCon/modcon-hpc/tree/main).
