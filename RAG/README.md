@@ -30,7 +30,7 @@ python3 <path-to-RAG/extract_RAG_metadata.py> \
 - `<output-dir-for-rag-json-file>` is the path to the directory to write the `*.json` file that will store the RAG chunks.
 
 3. Run the python script for RAG.  
-The following command is to run on terminal mode (`--terminal` option at the end of the command). The user prompt is given in a text file `user_prompt.txt`.  
+The following command is to run on terminal mode (`--terminal` option at the end of the command). The user prompt is given in a text file `user_prompt.txt`, and the output of the LLM+RAG inference is output to the terminal itself. 
 ```
 python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
 --llm-model=<llm-modelfile-for-ollama> \
