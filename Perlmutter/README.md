@@ -22,7 +22,7 @@ Then do
 Some models are already existing in `/global/cfs/cdirs/m2957/nataraj2/Tools/ollama/ollama_models/manifests/registry.ollama.ai/library`.
 For example `mistral7b-for-ollama`. The user can perform inference and all other workflows directly with the existing models.
 
-## Inference
+## How to perform Inference with Hugging Face models?
 
 1. Request an interactive GPU node:
 ```
