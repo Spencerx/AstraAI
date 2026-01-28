@@ -2,7 +2,7 @@
 
 On Perlmutter, the Python environment with all required packages is installed in the `m2957` project folder in `cfs`, so that all team members can access them without having to set up the environment themselves.  
 
-Include the following lines in your `~/.bashrc` and then apply the changes:
+Include the following lines in your `~/.bash_profile` and then apply the changes:
 
 ```bash
 export MODCON_ENV=/global/cfs/cdirs/m2957/nataraj2/modcon-env
