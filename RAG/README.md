@@ -20,23 +20,41 @@ ollama serve&
 
 2. Extract the RAG metadata for the source code and write the `.json` file
 ```
-python3 <path-to-modcon-hpc/Tools/extract_RAG_metadata.py> \
+python3 <path-to-RAG/extract_RAG_metadata.py> \
+--embed-model=all-minilm \
 --code-dir=<path-to-code-source-dir> \
---out-dir=<output-dir-for-json-file> \
---embed-model=nomic-embed-text
+--out-dir=<output-dir-for-rag-json-file>  
 ```
-Note: Ollama has the `nomic-embed-text` model within it, so the above should work.
+Note: Ollama has the `all-minilm` embedding model within it.  
+`path-to-code-source-dir` is the path to the source code directory (all `*.cpp`, `*.f90`,`*.F90`, `*,h`, `*.H` files are parsed to extract RAG chunks).  
+`<output-dir-for-rag-json-file>` is the path to the directory to write the `*.json` file that will store the RAG chunks.
 
-3. Run the python script for RAG. Running this script will give a prompt at which the user can give code specific queries.
+3. Run the python script for RAG.  
+The following command is to run on terminal mode (`--terminal` option at the end of the command). The user prompt is given in a text file `user_prompt.txt`.  
+```
+python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
+--llm-model=<llm-modelfile-for-ollama> \
+--embed-model=all-minilm \
+--rag-metadata-dir=<path-to-dir-with-json-file-with-rag-chunks> \
+--top-k=2 \
+--ollama-bin=<path-to-ollama/bin/ollama> \
+--prompt-file=user_prompt.txt \
+--terminal
+```
+  
+To do the same in a GitHub PR mode, create a PR 
 
 ```
-python3 <path-to-modcon-hpc>/Tools/Coder_LLM_RAG.py \
---llm-model=<path-to-my-ollama-model> \
---embed-model=nomic-embed-text \
---rag-dir=<path-to-dir-with-json-file> \
---top-k=5 \
---ollama-bin=<path-to-ollama-binary>
+python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
+--llm-model=<llm-modelfile-for-ollama> \
+--embed-model=all-minilm \
+--rag-metadata-dir=<path-to-dir-with-json-file-with-rag-chunks> \
+--top-k=2 \
+--ollama-bin=<path-to-ollama/bin/ollama> \
+--git-repo=nataraj2/formal
 ```
-The `--llm-model` is what was created using [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#2-load-the-model-into-ollama)  
+
+The `--llm-modelfile-for-ollama` is what was created using [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#2-load-the-model-into-ollama)  
 The `--ollama-bin` is the same as in [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#2-install-and-configure-ollama)
-The `--rag-dir` is the directory that contains all the json files in generated in Step 2 above.
+The `--rag-metadata-dir` is the path to the directory that contains the `.json` file with the RAG chunks.  
+The `--rag-metadata-dir` is the directory that contains all the json files in generated in Step 2 above.
