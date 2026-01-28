@@ -14,7 +14,7 @@ export PYTHONPATH=/global/cfs/cdirs/m2957/nataraj2/modcon-env/lib/python3.11/sit
 export HF_HOME=/global/cfs/cdirs/m2957/nataraj2/Tools/huggingface/cache
 ```
 
-The do
+Then do
 `source ~/.bash_profile`
 
 ## Models
