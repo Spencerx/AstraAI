@@ -28,7 +28,7 @@ python3 <path-to-RAG/extract_RAG_metadata_*.py> \
 - Note: Ollama has the `all-minilm` embedding model within it.  
 - `path-to-code-source-dir` is the path to the source code directory (all `*.cpp`, `*.f90`,`*.F90`, `*,h`, `*.H` files are parsed to extract RAG chunks).  
 - `<output-dir-for-rag-json-file>` is the path to the directory to write the `*.json` file that will store the RAG chunks.
-- For C++ codes, use `extract_RAG_metadata_cpp.py` and for Fortran codes, use `extract_RAG_metadata_fortran*.py`.
+- For C++ codes, use `extract_RAG_metadata_cpp.py` and for Fortran codes, use `extract_RAG_metadata_fortran.py`.
 
 3. Run the python script for RAG.  
 The following command is to run on terminal mode (`--terminal` option at the end of the command). The user prompt is given in a text file `user_prompt.txt`, and the output of the LLM+RAG inference is output to the terminal itself. 
