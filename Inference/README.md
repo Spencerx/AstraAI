@@ -52,3 +52,12 @@ Start an interactive inference session:
 
 You can now interact with the model via the command line.
 
+---
+
+## 4. When done, exit session and model
+
+When you have completed your interactive inference session, do the following to exit the session and then stop the model
+
+    /bye                        #exit the interactive session
+    ollama stop my-ollama-model #stop the model
+
