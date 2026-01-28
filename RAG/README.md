@@ -42,7 +42,7 @@ python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
 --terminal
 ```
   
-To do the same in a GitHub PR mode, create a PR 
+To do the same in a GitHub PR mode, create a PR, and write a comment on the PR with 
 
 ```
 python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
@@ -51,10 +51,13 @@ python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
 --rag-metadata-dir=<path-to-dir-with-json-file-with-rag-chunks> \
 --top-k=2 \
 --ollama-bin=<path-to-ollama/bin/ollama> \
---git-repo=nataraj2/formal
+--git-repo=<path-to-gi-repo>
 ```
 
 The `--llm-modelfile-for-ollama` is what was created using [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#2-load-the-model-into-ollama)  
 The `--ollama-bin` is the same as in [Step 2 in this README](https://github.com/AIModCon/modcon-hpc/tree/main/Tools#2-install-and-configure-ollama)  
 The `--rag-metadata-dir` is the path to the directory that contains the `.json` file with the RAG chunks.    
-The `--rag-metadata-dir` is the directory that contains all the json files in generated in Step 2 above.
+The `--rag-metadata-dir` is the directory that contains all the json files in generated in Step 2 above.  
+The `--git-repo` is the path to the github repository in the format `<username>/<repo-name>`
+
+
