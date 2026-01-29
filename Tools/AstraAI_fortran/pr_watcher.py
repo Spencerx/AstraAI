@@ -32,11 +32,7 @@ from prompt_io import resolve_output_file
 # ============================================================
 # CONFIG
 # ============================================================
-REPO = "AIModCon/repo-for-agent-testing"
 POLL_INTERVAL = 2  # seconds
-MODEL_NAME = "my-ollama-model"
-
-STATE_FILE = ".astraai_pr_watcher_state"
 
 # ============================================================
 # AUTH
@@ -55,23 +51,45 @@ GITHUB_API = "https://api.github.com"
 
 def parse_args():
     parser = argparse.ArgumentParser(description="astraai PR watcher")
+
+    parser.add_argument(
+        "--git-repo",
+        type=str,
+        default=None,
+        help="GitHub repository in the form org/repo (e.g., AIModCon/repo-for-agent-testing)",
+    )
+
     parser.add_argument(
         "--terminal",
         action="store_true",
         help="Run in terminal mode (no GitHub polling, print output only)",
     )
+
     parser.add_argument(
         "--prompt-file",
         type=str,
         help="File containing the user prompt (terminal mode only)",
     )
+
     parser.add_argument("--llm-model", type=str, default="my-ollama-model")
     parser.add_argument("--embed-model", type=str, default="nomic-embed-text")
-    parser.add_argument("--rag-metadata-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
+    parser.add_argument("--rag-metadata-dir", type=str, default=None)
     parser.add_argument("--hpc-code-examples-dir", type=str, default=None)
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--ollama-bin", type=str, default=None)
-    return parser.parse_args()
+
+    args = parser.parse_args()
+
+    # =====================================================
+    # Enforce mode rule
+    # =====================================================
+    if not args.git_repo and not args.terminal:
+        parser.error(
+            "The AI interaction mode should be given by either using "
+            "--git-repo=<git_repo> option or using --terminal option in the command line"
+        )
+
+    return args
 
 ARGS = parse_args()
 RAG_METADATA_DIR = ARGS.rag_metadata_dir
@@ -80,6 +98,7 @@ LLM_MODEL = ARGS.llm_model
 EMBED_MODEL = ARGS.embed_model
 TOP_K = ARGS.top_k
 OLLAMA_BIN = ARGS.ollama_bin
+GIT_REPO = ARGS.git_repo
 TERMINAL_MODE = ARGS.terminal
 
 RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
@@ -124,7 +143,7 @@ def get_all(url: str) -> List[dict]:
 
 def get_latest_open_pr() -> Optional[int]:
     r = requests.get(
-        f"{GITHUB_API}/repos/{REPO}/pulls",
+        f"{GITHUB_API}/repos/{GIT_REPO}/pulls",
         headers=HEADERS,
         params={"state": "open", "sort": "created", "direction": "desc"},
     )
@@ -140,7 +159,7 @@ def get_latest_open_pr() -> Optional[int]:
 
 def post_comment(pr: int, body: str):
     requests.post(
-        f"{GITHUB_API}/repos/{REPO}/issues/{pr}/comments",
+        f"{GITHUB_API}/repos/{GIT_REPO}/issues/{pr}/comments",
         headers=HEADERS,
         json={"body": body},
     )
@@ -165,7 +184,7 @@ def emit_response(pr: Optional[int], message: str):
 def collect_conversation(pr: int) -> List[ConversationComment]:
     comments: List[ConversationComment] = []
 
-    for c in get_all(f"{GITHUB_API}/repos/{REPO}/issues/{pr}/comments"):
+    for c in get_all(f"{GITHUB_API}/repos/{GIT_REPO}/issues/{pr}/comments"):
         comments.append(
             ConversationComment(
                 uid=f"issue-{c['id']}",
@@ -176,7 +195,7 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
             )
         )
 
-    for c in get_all(f"{GITHUB_API}/repos/{REPO}/pulls/{pr}/comments"):
+    for c in get_all(f"{GITHUB_API}/repos/{GIT_REPO}/pulls/{pr}/comments"):
         comments.append(
             ConversationComment(
                 uid=f"review-comment-{c['id']}",
@@ -187,7 +206,7 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
             )
         )
 
-    for r in get_all(f"{GITHUB_API}/repos/{REPO}/pulls/{pr}/reviews"):
+    for r in get_all(f"{GITHUB_API}/repos/{GIT_REPO}/pulls/{pr}/reviews"):
         if r.get("body"):
             comments.append(
                 ConversationComment(
@@ -206,7 +225,7 @@ def find_latest_comment(comments: List[ConversationComment]) -> Optional[Convers
 
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
-    out = run_ollama(prompt, MODEL_NAME, OLLAMA_BIN)
+    out = run_ollama(prompt, LLM_MODEL, OLLAMA_BIN)
     if out is None:
         emit_response(pr, "❌ LLM call failed.")
         return ""
@@ -263,7 +282,7 @@ def handle_code_generation(user_prompt: str, pr: Optional[int]):
 def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
     log(f"Handling prompt: {user_prompt}")
 
-    intent = get_user_intent(user_prompt, MODEL_NAME, OLLAMA_BIN)
+    intent = get_user_intent(user_prompt, LLM_MODEL, OLLAMA_BIN)
     print("The intent is ", intent)
 
     if intent == "scaffolding":
@@ -271,7 +290,7 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                   pr=pr,
                                   log=log,
                                   emit_response=emit_response,
-                                  hpc_examples_dir=HPC_CODE_EXAMPLES_DIR)
+                                  hpc_examples_dir=ARGS.hpc_code_examples_dir)
 
     if intent == "compilation":
         return handle_compilation(user_prompt=user_prompt,

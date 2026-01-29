@@ -2,7 +2,7 @@ from typing import Optional, Callable
 
 def build_compilation_prompt(compiler_output: str) -> str:
     return (
-    "You are an expert C++ / HPC / AMReX developer.\n\n"
+    "You are an expert Modern Fortran HPC developer.\n\n"
     "You will be given compiler or linker errors.\n"
     "Your job is to diagnose and fix them with MINIMAL text.\n\n"
 

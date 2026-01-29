@@ -1,17 +1,18 @@
 import json
 from llm import run_ollama
-
+import re
 
 def get_user_intent(user_prompt, model, ollama_bin):
     """
-    Determine the user's intent.
+    Determine the user's intent for general Fortran/HPC code requests.
 
     Possible intents:
-    - scaffolding
-    - compilation
-    - codeadvising
-    - explaining
-    - refactor
+    - scaffolding       : asking for a template / starter code
+    - compilation       : reporting compilation / linking errors
+    - codeadvising      : asking for example code, snippets, or illustrative routines
+    - explaining        : asking for explanation of code or functions
+    - code_generation   : asking to modify existing files / routines
+    - refactor          : asking to restructure or refactor existing code
     """
 
     text = user_prompt.lower()
@@ -20,31 +21,65 @@ def get_user_intent(user_prompt, model, ollama_bin):
     # HARD RULE: COMPILATION ERRORS (NO LLM)
     # =====================================================
     compiler_markers = [
-        "error:",
-        "undefined reference",
-        "ld returned",
-        "collect2:",
-        "fatal error:",
-        "mpicxx",
-        "g++",
-        "clang++",
-        "nvcc",
-        "linker",
-        "undefined symbol",
+        "error:", "undefined reference", "ld returned", "collect2:", "fatal error:",
+        "mpif90", "gfortran", "ifort", "nvfortran", "linker", "undefined symbol"
     ]
-
     if any(marker in text for marker in compiler_markers):
         return "compilation"
 
     # =====================================================
-    # LLM-BASED INTENT CLASSIFICATION
+    # HARD RULES BASED ON KEYWORDS
     # =====================================================
-    prompt = f"""
-You are deciding the FIRST ACTION an automated developer tool should take.
 
-IMPORTANT:
-Scaffolding (creating a base AMReX project structure) ALWAYS takes priority
-over code generation or refactoring.
+    # 1️⃣ Scaffolding: asking for a template / starter code
+    scaffolding_patterns = [
+        r"i want an existing template code for",
+        r"give a template for a fortran program",
+        r"starter code for",
+        r"example project code for"
+    ]
+    if any(re.search(pat, text) for pat in scaffolding_patterns):
+        return "scaffolding"
+
+    # 2️⃣ Code advising: asking for examples / snippets / routines
+    codeadvising_patterns = [
+        r"how to ",
+        r"give code snippets for",
+        r"give a sample code for",
+        r"give the program and subroutines for",
+        r"show me how to implement",
+        r"example.*code",
+        r"function .* example",
+        r"routine .* example"
+    ]
+    if any(re.search(pat, text) for pat in codeadvising_patterns):
+        return "codeadvising"
+
+    # 3️⃣ Code generation: specifically modifying existing files or routines
+    code_generation_patterns = [
+        r"modify this routine",
+        r"modify this file",
+        r"update this subroutine",
+        r"change .* in file",
+        r"rewrite .* in file"
+    ]
+    if any(re.search(pat, text) for pat in code_generation_patterns):
+        return "code_generation"
+
+    # 4️⃣ Explaining: asking to explain code or functions
+    explaining_patterns = [
+        r"can you explain",
+        r"what does .* do",
+        r"explain this code",
+        r"how does .* work",
+        r"describe .* function"
+    ]
+    if any(re.search(pat, text) for pat in explaining_patterns):
+        return "explaining"
+
+    # 5️⃣ Fallback: use LLM only for ambiguous requests
+    prompt = f"""
+You are deciding the FIRST ACTION an automated developer tool should take for a Fortran/HPC request.
 
 Choose EXACTLY ONE intent from:
 
@@ -56,27 +91,11 @@ Choose EXACTLY ONE intent from:
 - refactor
 
 DECISION RULES (STRICT):
-1. If the user mentions AMReX AND any of the following words:
-   "start working with", "port my exsiting code", "convert", "migrate my code into", "understand how this works",
-   → intent MUST be "scaffolding"
-
-2. If the user requests for code snippets, code suggestion, without asking to modify files → "codeadvising"
-   If user says "I want some suggestions or code ideas or examples etc." -> codeadvising
-   If the user says "Give a sample code" -> codeadvising
-
-3. If the user says "Give a sample code and explain " -> "codeadvising"
-   You **must** give relevant code snippets to the user in your response.
-
-4. If the user requests for explaining code without asking for code snippets -> "explaining"
-
-5. If user asks "Can you tell me what this function does" or "Can ypu explain" 
-
-6. If the user simply posts a piece of code -> "explaining"
-
-7. If the user asks to modify files directly or extend an EXISTING AMReX codebase
-   (mentions files, classes, functions) → "code_generation" or "refactor"
-
-8. If the user asks for compilation error help or pastes a compilation error -> "compilation"
+1. Scaffolding is when the user wants an existing template or starter code.
+2. Code advising is when the user wants example code, snippets, or illustrative routines.
+3. Compilation is when the user posts a compilation or linking error.
+4. Code generation is when the user asks to modify existing routines/files.
+5. Explaining is when the user asks to understand or describe code.
 
 Return ONLY valid JSON:
 {{"intent": "<one of the above>"}}
@@ -87,7 +106,13 @@ User request:
     out = run_ollama(prompt, model, ollama_bin)
 
     try:
-        return json.loads(out)["intent"]
+        result = json.loads(out)
+        intent = result.get("intent")
+        if intent not in ["scaffolding", "compilation", "codeadvising", "explaining", "code_generation", "refactor"]:
+            # fallback if LLM returned something unexpected
+            intent = "codeadvising"
     except Exception:
-        # Safe fallback
-        return "scaffolding"
+        # fallback if JSON parsing fails
+        intent = "codeadvising"
+
+    return intent

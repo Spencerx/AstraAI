@@ -155,7 +155,7 @@ def handle_explaining(
     # -----------------------------
 
     prompt = f"""
-You are an AMReX expert.
+You are an modern Fortran expert.
 
 The user is asking for an explanation of the code.
 

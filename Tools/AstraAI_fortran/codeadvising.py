@@ -181,10 +181,11 @@ def handle_codeadvising(
     # Build code advising prompt
     # -----------------------------
     prompt = f"""
-You are an AMReX expert
+You are an modern Fortran expert
 
 If user asks for code snippets or suggestions, provide **all** the necessary functions from the below context.
-All functions that match the user prompt should be provided.
+You MUST include every function present in the reference code, regardless of whether you think it is directly needed for the user prompt.
+Do NOT filter, summarize, or omit any function from the reference code.
 You are FORBIDDEN from inventing any new API, header, class, or function.
 
 
