@@ -32,18 +32,6 @@ Once on the node, initialize the environment and start the Ollama server:
 `<path-to-modcon-env>` is the path to the environment created in [Step 1 here](https://github.com/AIModCon/modcon-hpc/tree/main).  
 After the server finishes initializing, press **Enter** to return to the command prompt.
 
----
-
-## 2. Load the model into Ollama
-
-Create the Ollama model using the `modelfile_for_ollama` from Step 2 in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles)
-
-    ollama create my-ollama-model -f <path-to-modelfile-for-ollama>
-
-This copies the GGUF model into Ollama’s model store.
-
----
-
 ## 3. Run the model and perform inference
 
 Start an interactive inference session:

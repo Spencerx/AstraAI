@@ -35,3 +35,11 @@ In the `FROM` line in this file (see example in this directory), point to the pa
 
 You may optionally add system prompts or parameters as needed.
 
+
+## 3. Load the model into Ollama
+
+Create the Ollama model using the `modelfile_for_ollama` from Step 2 in [Make the LLM ollama-ready](https://github.com/AIModCon/modcon-hpc/tree/main/ModelFiles)
+
+    ollama create my-ollama-model -f <path-to-modelfile-for-ollama>
+
+This copies the GGUF model into Ollama’s model store.
