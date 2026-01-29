@@ -33,7 +33,7 @@ python3 <path-to-RAG/extract_RAG_metadata_*.py> \
 3. Run the python script for RAG.  
 The following command is to run on terminal mode (`--terminal` option at the end of the command). The user prompt is given in a text file `user_prompt.txt`, and the output of the LLM+RAG inference is output to the terminal itself. 
 ```
-python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
+python3 <path-to-/Tools/AstraAI_*/pr_watcher.py>
 --llm-model=<llm-modelfile-for-ollama> \
 --embed-model=all-minilm \
 --rag-metadata-dir=<path-to-dir-with-json-file-with-rag-chunks> \
@@ -42,11 +42,12 @@ python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
 --prompt-file=user_prompt.txt \
 --terminal
 ```
+`AstraAI_*` refers to `AstraAI_cpp` or `AstraAI_fortran` directory. 
   
 To do the same in a GitHub PR mode, create a PR, and write a comment on the PR with 
 
 ```
-python3 <path-to-/Tools/AstraAI_fortran/pr_watcher.py>
+python3 <path-to-/Tools/AstraAI_*/pr_watcher.py>
 --llm-model=<llm-modelfile-for-ollama> \
 --embed-model=all-minilm \
 --rag-metadata-dir=<path-to-dir-with-json-file-with-rag-chunks> \
