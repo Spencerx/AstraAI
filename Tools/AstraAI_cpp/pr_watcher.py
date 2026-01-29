@@ -34,9 +34,6 @@ from prompt_io import resolve_output_file
 # ============================================================
 REPO = "AIModCon/repo-for-agent-testing"
 POLL_INTERVAL = 2  # seconds
-MODEL_NAME = "my-ollama-model"
-
-STATE_FILE = ".astraai_pr_watcher_state"
 
 # ============================================================
 # AUTH
@@ -206,7 +203,7 @@ def find_latest_comment(comments: List[ConversationComment]) -> Optional[Convers
 
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
-    out = run_ollama(prompt, MODEL_NAME, OLLAMA_BIN)
+    out = run_ollama(prompt, LLM_MODEL, OLLAMA_BIN)
     if out is None:
         emit_response(pr, "❌ LLM call failed.")
         return ""
@@ -263,7 +260,7 @@ def handle_code_generation(user_prompt: str, pr: Optional[int]):
 def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
     log(f"Handling prompt: {user_prompt}")
 
-    intent = get_user_intent(user_prompt, MODEL_NAME, OLLAMA_BIN)
+    intent = get_user_intent(user_prompt, LLM_MODEL, OLLAMA_BIN)
     print("The intent is ", intent)
 
     if intent == "scaffolding":
