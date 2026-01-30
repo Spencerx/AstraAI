@@ -25,7 +25,7 @@ The `--install-model` should be in the format `deepseek-ai/deepseek-coder-6.7b-i
 
 ### Explanation
 
-Running the above script does the 
+Running the above script does the following steps: 
 1. Convert the model from Hugging Face to GGUF
 
 Activate the ModCon Python environment created in [Step 1 here](https://github.com/AIModCon/modcon-hpc/tree/main):
