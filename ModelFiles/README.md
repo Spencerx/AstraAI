@@ -14,14 +14,14 @@ Run the following command to download a model from Hugging Face, convert it via 
 
 ```bash
 python3 install_hf_model_for_ollama.py \
-    --install-model=deepseek-ai/deepseek-coder-6.7b-instruct \
+    --install-model=<hugging-face-model> \
     --model-install-dir=<path-to-huggingface-storage> \
     --llamacpp-dir=<path-to-llama-cpp-repo> \
     --modelfile_template=<path-to-modelfile-template> \
     --ollama-modelfile-dir=<path-to-ollama-modelfiles-output> \
     --ollama-bin=<path-to-ollama-binary>
 ```
-The `--install-model` should be in the format `deepseek-ai/deepseek-coder-6.7b-instruct` -- like the usual hugging face models are named.
+The `<hugging-face-model>` should be in the format `deepseek-ai/deepseek-coder-6.7b-instruct` -- like the usual hugging face models are named.
 
 ### Explanation
 
