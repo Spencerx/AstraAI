@@ -181,13 +181,20 @@ def handle_codeadvising(
     # Build code advising prompt
     # -----------------------------
     prompt = f"""
-You are an modern Fortran expert
+You are an expert Fortran/HPC developer.
+You MUST output code **only in Fortran**.
+Do NOT provide Python, Julia, Matlab, or Octave code.
 
-If user asks for code snippets or suggestions, provide **all** the necessary functions from the below context.
-You MUST include every function present in the reference code, regardless of whether you think it is directly needed for the user prompt.
-Do NOT filter, summarize, or omit any function from the reference code.
-You are FORBIDDEN from inventing any new API, header, class, or function.
 
+You are given reference code from a large HPC codebase.
+This is NOT the answer.
+It is background knowledge to help you understand available APIs,
+data structures, naming conventions, and style.
+
+Use this knowledge to write new code that satisfies the user request.
+
+Do not copy large portions of the reference unless necessary.
+Do not output the reference code itself.
 
 ---------------- REFERENCE CODE ----------------
 {context}
@@ -196,6 +203,14 @@ You are FORBIDDEN from inventing any new API, header, class, or function.
 USER PROMPT:
 {user_prompt}
 """
+
+    # Assuming 'prompt' is already defined as in your code
+    output_file = "full_prompt.txt"
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(prompt)
+
+    print(f"Prompt successfully written to {output_file}")
     # -----------------------------
     # LLM call
     # -----------------------------

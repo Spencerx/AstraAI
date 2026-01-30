@@ -46,7 +46,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
         r"how to ",
         r"give code snippets for",
         r"give a sample code for",
-        r"give the program and subroutines for",
+        r"give the program",
         r"show me how to implement",
         r"example.*code",
         r"function .* example",
@@ -94,7 +94,8 @@ DECISION RULES (STRICT):
 1. Scaffolding is when the user wants an existing template or starter code.
 2. Code advising is when the user wants example code, snippets, or illustrative routines.
 3. Compilation is when the user posts a compilation or linking error.
-4. Code generation is when the user asks to modify existing routines/files.
+4. Code generation is when the user asks to wrte or modify existing routines/files.
+   Asking for code without asking to modify or write into a file is codeadvising, not code_generation
 5. Explaining is when the user asks to understand or describe code.
 
 Return ONLY valid JSON:
