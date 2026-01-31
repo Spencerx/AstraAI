@@ -182,11 +182,17 @@ def handle_codeadvising(
     # -----------------------------
     prompt = f"""
 You are an AMReX expert
+Output C++ code
 
-If user asks for code snippets or suggestions, provide **all** the necessary functions from the below context.
-All functions that match the user prompt should be provided.
-You are FORBIDDEN from inventing any new API, header, class, or function.
+You are given reference code from a large HPC codebase.
+This is NOT the answer.
+It is background knowledge to help you understand available APIs,
+data structures, naming conventions, and style.
 
+Use this knowledge to write new code that satisfies the user request.
+
+Do not copy large portions of the reference unless necessary.
+Do not output the reference code itself.
 
 ---------------- REFERENCE CODE ----------------
 {context}
