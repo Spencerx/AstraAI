@@ -107,8 +107,12 @@ def extract_chunks(file_path, example_name, example_root):
 
             i += 1
 
-        # The rest is code
-        code_lines = block_lines[i:]
+        # Collect code lines until ! END CODE CHUNK marker
+        for j in range(i, n):
+            line = block_lines[j].strip()
+            if line.lower() == "! end code chunk":
+                break
+            code_lines.append(block_lines[j])
 
         # Try to find a module procedure name (if any)
         proc_name = None
