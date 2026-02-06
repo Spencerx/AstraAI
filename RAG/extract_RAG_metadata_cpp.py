@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import json
 import uuid
@@ -8,21 +6,17 @@ import textwrap
 import time
 import requests
 from pathlib import Path
-import sys
 
-# ------------------------------------------------------------
-# Config
-# ------------------------------------------------------------
 VALID_EXTENSIONS = {".cpp", ".cc", ".H", ".h", ".f90", ".F90"}
 VALID_FILENAMES = {"inputs"}
 EXCLUDE_DIRS = {".git", "build", "CMakeFiles"}
 
 OLLAMA_EMBED_URL = "http://127.0.0.1:11434/api/embeddings"
 
-MAX_EMBED_CHARS = 3000        # HARD safety limit
-CODE_EMBED_LINES = 80        # AMReX-friendly
+MAX_EMBED_CHARS = 3000
 EMBED_RETRIES = 2
 RETRY_SLEEP = 1.0
+
 
 # ------------------------------------------------------------
 # Ollama embedding
@@ -32,10 +26,7 @@ def embed_text(text: str, model: str):
     if len(text) > MAX_EMBED_CHARS:
         text = text[:MAX_EMBED_CHARS]
 
-    payload = {
-        "model": model,
-        "prompt": text
-    }
+    payload = {"model": model, "prompt": text}
 
     for attempt in range(EMBED_RETRIES):
         try:
@@ -46,9 +37,36 @@ def embed_text(text: str, model: str):
                 raise RuntimeError(r.text)
         except Exception as e:
             if attempt + 1 == EMBED_RETRIES:
-                raise RuntimeError(f"Ollama embedding failed after retries: {e}")
+                raise RuntimeError(f"Ollama embedding failed: {e}")
             time.sleep(RETRY_SLEEP)
 
+
+# ------------------------------------------------------------
+# NEW: Parse AI_METADATA blocks
+# ------------------------------------------------------------
+def parse_metadata_block(lines, start_idx):
+    metadata = {}
+    i = start_idx + 1
+
+    while i < len(lines):
+        line = lines[i].strip()
+
+        if not line.startswith("//"):
+            break
+
+        content = line.lstrip("/").strip()
+        if ":" in content:
+            key, val = content.split(":", 1)
+            metadata[key.strip()] = val.strip()
+
+        i += 1
+
+    return metadata, i
+
+
+# ------------------------------------------------------------
+# NEW: Extract chunks using AI_METADATA
+# ------------------------------------------------------------
 def extract_chunks(file_path, example_name, example_root):
     chunks = []
 
@@ -60,146 +78,60 @@ def extract_chunks(file_path, example_name, example_root):
 
     i = 0
     while i < len(lines):
-        line = lines[i].lstrip()
+        line = lines[i].strip()
 
-        # --------------------------------------------------
-        # Detect FUNCTION header
-        # --------------------------------------------------
-        if line.startswith("// FUNCTION:") or line.startswith("# FUNCTION:"):
+        if line.startswith("// AI_METADATA"):
+            metadata, i = parse_metadata_block(lines, i)
 
-            function_lines = []
-            features_lines = []
-
-            # First FUNCTION line
-            function_lines.append(line.split(":", 1)[1].strip())
-            i += 1
-
-            mode = "function"
-
-            # --------------------------------------------------
-            # Consume comment header block
-            # --------------------------------------------------
-            while i < len(lines):
-                cur = lines[i].lstrip()
-
-                # Stop when real code begins
-                if not (cur.startswith("//") or cur.startswith("#")):
-                    break
-
-                content = cur.lstrip("/#").strip()
-
-                if content.startswith("FEATURES:"):
-                    mode = "features"
-                    features_lines.append(content.split(":", 1)[1].strip())
-                else:
-                    if mode == "function":
-                        function_lines.append(content)
-                    else:
-                        features_lines.append(content)
-
-                i += 1
-
-            function_desc = " ".join(function_lines).strip()
-
-            # Parse features
-            features = []
-            for fl in features_lines:
-                for f in fl.split(","):
-                    if f.strip():
-                        features.append(f.strip())
-
-            # --------------------------------------------------
-            # Collect actual code (UNCHANGED LOGIC)
-            # --------------------------------------------------
             code_lines = []
             while i < len(lines):
-                nxt = lines[i].lstrip()
-                if nxt.startswith("// FUNCTION:") or nxt.startswith("# FUNCTION:"):
+                if lines[i].strip().startswith("// AI_METADATA"):
                     break
                 code_lines.append(lines[i])
                 i += 1
 
             full_code = textwrap.dedent("\n".join(code_lines))
-            code_for_embedding = "\n".join(code_lines[:CODE_EMBED_LINES])
 
             try:
                 rel_path = str(file_path.relative_to(example_root))
             except ValueError:
                 rel_path = file_path.name
 
+            embedding_text = (
+                f"TASK TYPE: {metadata.get('task_type','')}\n"
+                f"DESCRIPTION: {metadata.get('description','')}\n"
+                f"KEYWORDS: {metadata.get('keywords','')}\n"
+                f"PATTERNS: {metadata.get('patterns','')}\n\n"
+                f"CODE:\n{full_code[:1000]}"
+            )
+
             chunks.append({
                 "id": str(uuid.uuid4()),
                 "text": full_code,
                 "metadata": {
                     "example": example_name,
-                    "function": function_desc,
-                    "features": features,
                     "source_file": file_path.name,
                     "relative_path": rel_path,
-                    "language": "cpp" if file_path.suffix else "txt"
+                    "language": file_path.suffix,
+                    **metadata
                 },
-                "embedding_text": (
-                    f"FUNCTION:\n{function_desc}\n\n"
-                    f"FEATURES:\n{', '.join(features)}\n\n"
-                    f"CODE:\n{code_lines[:10]}"  # just the first few lines
-                )
+                "embedding_text": embedding_text
             })
 
         else:
             i += 1
 
-    # --------------------------------------------------
-    # Fallback: whole file
-    # --------------------------------------------------
-    if not chunks:
-        full_code = "\n".join(lines)
-        code_for_embedding = "\n".join(lines[:CODE_EMBED_LINES])
-
-        try:
-            rel_path = str(file_path.relative_to(example_root))
-        except ValueError:
-            rel_path = file_path.name
-
-        chunks.append({
-            "id": str(uuid.uuid4()),
-            "text": full_code,
-            "metadata": {
-                "example": example_name,
-                "function": "full file",
-                "features": [],
-                "source_file": file_path.name,
-                "relative_path": rel_path,
-                "language": "txt"
-            },
-            "embedding_text": (
-                f"FUNCTION:\n{function_desc}\n\n"
-                f"FEATURES:\n{', '.join(features)}\n"
-            )
-        })
-
     return chunks
 
 
-
 # ------------------------------------------------------------
-# Main
+# NEW: Process one code directory → one json
 # ------------------------------------------------------------
-def main():
-    parser = argparse.ArgumentParser(
-        description="Extract AMReX RAG metadata with embeddings"
-    )
-    parser.add_argument("--code-dir", required=True)
-    parser.add_argument("--out-dir", required=True)
-    parser.add_argument("--embed-model", required=True)
-
-    args = parser.parse_args()
-
-    code_dir = Path(args.code_dir).resolve()
-    out_dir = Path(args.out_dir).resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-
+def process_codebase(code_dir, out_dir, embed_model):
     example_name = code_dir.name
     output_file = out_dir / f"{example_name}.json"
+
+    print(f"\n[INFO] Processing codebase: {example_name}")
 
     all_chunks = []
 
@@ -211,18 +143,18 @@ def main():
 
         all_chunks.extend(extract_chunks(path, example_name, code_dir))
 
-    print(f"[INFO] Embedding {len(all_chunks)} chunks using {args.embed_model}")
+    print(f"[INFO] Found {len(all_chunks)} AI_METADATA chunks")
 
     embedded = 0
     for chunk in all_chunks:
         try:
             chunk["embedding"] = embed_text(
                 chunk.pop("embedding_text"),
-                args.embed_model
+                embed_model
             )
             embedded += 1
         except Exception as e:
-            print(f"[WARN] Skipping chunk {chunk['id']}: {e}")
+            print(f"[WARN] Embedding failed: {e}")
             chunk["embedding"] = None
 
     metadata = {
@@ -234,7 +166,33 @@ def main():
     with open(output_file, "w") as f:
         json.dump(metadata, f, indent=2)
 
-    print(f"[OK] Wrote {embedded} embeddings → {output_file}")
+    print(f"[OK] Wrote → {output_file}")
+
+
+# ------------------------------------------------------------
+# Main
+# ------------------------------------------------------------
+def main():
+    parser = argparse.ArgumentParser(
+        description="Extract AI_METADATA chunks with embeddings"
+    )
+    parser.add_argument("--code-dir", required=True,
+                        help="Directory containing multiple codebases")
+    parser.add_argument("--out-dir", required=True)
+    parser.add_argument("--embed-model", required=True)
+
+    args = parser.parse_args()
+
+    code_root = Path(args.code_dir).resolve()
+    out_dir = Path(args.out_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # 🔴 iterate over subdirectories
+    for subdir in code_root.iterdir():
+        if subdir.is_dir():
+            process_codebase(subdir, out_dir, args.embed_model)
+
 
 if __name__ == "__main__":
     main()
+
