@@ -11,7 +11,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
     - compilation       : reporting compilation / linking errors
     - codeadvising      : asking for example code, snippets, or illustrative routines
     - explaining        : asking for explanation of code or functions
-    - code_generation   : asking to modify existing files / routines
+    - codemodification  : asking to modify existing files / routines
     - refactor          : asking to restructure or refactor existing code
     """
 
@@ -38,7 +38,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
         r"starter code for",
         r"example project code for"
     ]
-    if any(re.search(pat, text) for pat in scaffolding_patterns):
+    if any(re.search(pat, text, re.IGNORECASE) for pat in scaffolding_patterns):
         return "scaffolding"
 
     # 2️⃣ Code advising: asking for examples / snippets / routines
@@ -52,20 +52,23 @@ def get_user_intent(user_prompt, model, ollama_bin):
         r"function .* example",
         r"routine .* example"
     ]
-    if any(re.search(pat, text) for pat in codeadvising_patterns):
+    if any(re.search(pat, text, re.IGNORECASE) for pat in codeadvising_patterns):
         return "codeadvising"
 
-    # 3️⃣ Code generation: specifically modifying existing files or routines
-    code_generation_patterns = [
+    # 3️⃣ Code modification: specifically modifying existing files or routines
+    codemodification_patterns = [
         r"modify this routine",
         r"modify this file",
         r"update this subroutine",
         r"change .* in file",
-        r"rewrite .* in file"
-        r"Implement a function .* in file"
+        r"rewrite .* in file", 
+        r"Implement a function",
+        r"Implement a new function",
+        r"Implement a new method",
+        r"Implement a method"
     ]
-    if any(re.search(pat, text) for pat in code_generation_patterns):
-        return "code_generation"
+    if any(re.search(pat, text, re.IGNORECASE) for pat in codemodification_patterns):
+        return "codemodification"
 
     # 4️⃣ Explaining: asking to explain code or functions
     explaining_patterns = [
@@ -75,7 +78,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
         r"how does .* work",
         r"describe .* function"
     ]
-    if any(re.search(pat, text) for pat in explaining_patterns):
+    if any(re.search(pat, text, re.IGNORECASE) for pat in explaining_patterns):
         return "explaining"
 
     # 5️⃣ Fallback: use LLM only for ambiguous requests
@@ -88,15 +91,15 @@ Choose EXACTLY ONE intent from:
 - compilation
 - codeadvising
 - explaining
-- code_generation
+- codemodification
 - refactor
 
 DECISION RULES (STRICT):
 1. Scaffolding is when the user wants an existing template or starter code.
 2. Code advising is when the user wants example code, snippets, or illustrative routines.
 3. Compilation is when the user posts a compilation or linking error.
-4. Code generation is when the user asks to wrte or modify existing routines/files.
-   Asking for code without asking to modify or write into a file is codeadvising, not code_generation
+4. Code modification is when the user asks to implement or modify existing routines/files.
+   Asking for code without asking to implement or modify or write into a file is codeadvising, not codemodification
 5. Explaining is when the user asks to understand or describe code.
 
 Return ONLY valid JSON:
@@ -110,11 +113,9 @@ User request:
     try:
         result = json.loads(out)
         intent = result.get("intent")
-        if intent not in ["scaffolding", "compilation", "codeadvising", "explaining", "code_generation", "refactor"]:
-            # fallback if LLM returned something unexpected
+        if intent not in ["scaffolding", "compilation", "codeadvising", "explaining", "codemodification", "refactor"]:
             intent = "codeadvising"
     except Exception:
-        # fallback if JSON parsing fails
         intent = "codeadvising"
 
     return intent

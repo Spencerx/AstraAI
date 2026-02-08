@@ -26,7 +26,7 @@ from scaffolding import handle_scaffolding, copy_scaffold
 from compilation import handle_compilation
 from codeadvising import handle_codeadvising
 from rag import load_all_rag_metadata
-from codemodification import handle_codemodification
+from codemodification import handle_codemodification, classify_task_llm
 from explaining import handle_explaining
 from prompt_io import resolve_output_file
 
@@ -299,20 +299,27 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                ollama_bin=OLLAMA_BIN)
 
     if intent == "codemodification":
-        
-        return handle_codemodification(user_prompt=user_prompt,
-                               pr=pr,
-                               log=log,
-                               run_llm=run_llm,
-                               emit_response=emit_response,
-                               rag_metadata=RAG_METADATA,
-                               top_k=TOP_K,
-                               embed_model=EMBED_MODEL,
-                               ollama_bin=OLLAMA_BIN)
+      
+        task_type = classify_task_llm(prompt=user_prompt,
+                                      pr=pr,
+                                      run_llm=run_llm)
+ 
+        print("The task type is", task_type)
+        exit;
+
+        #return handle_codemodification(user_prompt=user_prompt,
+         #                      pr=pr,
+         #                      log=log,
+         #                      run_llm=run_llm,
+         #                      emit_response=emit_response,
+         #                      rag_metadata=RAG_METADATA,
+         #                      top_k=TOP_K,
+         #                      embed_model=EMBED_MODEL,
+         #                      ollama_bin=OLLAMA_BIN)
    
 
     # default = code generation / editing
-    return handle_code_generation(user_prompt, pr)
+    #return handle_code_generation(user_prompt, pr)
 
 # ============================================================
 # MAIN WATCHER LOOP

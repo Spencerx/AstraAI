@@ -4,6 +4,81 @@ import os
 import numpy as np
 from typing import List, Dict, Any, Optional, Callable
 from rag import build_rag_context
+import re
+
+def classify_task_llm(prompt: str, pr, run_llm: Callable) -> str:
+    """
+    Classify a user prompt into one of the predefined task types
+    for code modification in a repo-aware HPC/C++ codebase.
+
+    Arguments:
+        prompt: User request string
+        pr: Repository / project context object
+        run_llm: Callable that takes (prompt, pr) and returns LLM output
+
+    Returns:
+        task_type: One of the task keywords or 'LEGACY' if unknown
+    """
+
+    # Task types with multiple phrasings for LLM guidance
+    task_types = """
+ADD_CLASS_METHOD: Add a new function to a class (header + cpp)
+ADD_CLASS_METHOD: Implement a function
+ADD_CLASS_METHOD: Implement a method
+MERGE_CODE_SNIPPET_AS_FUNCTION: Wrap code snippet as a function and merge into a class
+CALL_EXISTING_FUNCTION: Insert a call to an existing function
+ADD_MEMBER_VARIABLE: Add a member variable to a class
+MODIFY_EXISTING_METHOD: Modify the body of an existing method
+WIRE_TWO_SUBSYSTEMS: Connect two parts of the code (e.g., solver + advection)
+"""
+
+    # Construct LLM prompt
+    llm_prompt = f"""
+You are a code assistant.
+
+Given a user prompt, classify it into **one** of the following task types:
+
+{task_types}
+
+Return only the task type keyword, nothing else.
+
+User prompt:
+"{prompt}"
+"""
+
+    # Run LLM
+    task_type_raw = run_llm(llm_prompt, pr)
+
+    # Clean and extract only the keyword (ignore explanations or extra text)
+    task_type_clean = re.split(r"[:\s]", task_type_raw.strip().upper())[0]
+
+    # Build valid task type list
+    valid_task_types = list(set([
+        line.split(":", 1)[0].strip().upper()
+        for line in task_types.strip().splitlines()
+        if line.strip()
+    ]))
+
+    # Final check
+    if task_type_clean not in valid_task_types:
+        return "LEGACY"
+
+    return task_type_clean
+
+#def handle_codemodification_router(...):
+
+#    task_type = classify_task_llm(user_prompt)
+#    log(f"[INFO] task_type = {task_type}")
+
+#    if task_type == "ADD_CLASS_METHOD":
+#        return handle_add_class_method(...)
+
+#    elif task_type == "MERGE_CODE_SNIPPET_AS_FUNCTION":
+#        return handle_merge_snippet(...)
+
+#    else:
+#        return handle_legacy_rag_llm(...)
+
 
 def handle_codemodification(
     *,
