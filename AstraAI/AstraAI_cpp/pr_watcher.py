@@ -26,7 +26,7 @@ from scaffolding import handle_scaffolding, copy_scaffold
 from compilation import handle_compilation
 from codeadvising import handle_codeadvising
 from rag import load_all_rag_metadata
-#:from codemodification import handle_codemodification, load_all_rag_metadata
+from codemodification import handle_codemodification
 from explaining import handle_explaining
 from prompt_io import resolve_output_file
 
@@ -300,7 +300,7 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
 
     if intent == "codemodification":
         
-        return handle_codeadvising(user_prompt=user_prompt,
+        return handle_codemodification(user_prompt=user_prompt,
                                pr=pr,
                                log=log,
                                run_llm=run_llm,
