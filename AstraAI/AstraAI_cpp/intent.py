@@ -62,6 +62,7 @@ def get_user_intent(user_prompt, model, ollama_bin):
         r"update this subroutine",
         r"change .* in file",
         r"rewrite .* in file"
+        r"Implement a function .* in file"
     ]
     if any(re.search(pat, text) for pat in code_generation_patterns):
         return "code_generation"

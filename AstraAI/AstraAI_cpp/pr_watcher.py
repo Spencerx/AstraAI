@@ -24,7 +24,9 @@ from embeddings import get_embedding
 from intent import get_user_intent
 from scaffolding import handle_scaffolding, copy_scaffold
 from compilation import handle_compilation
-from codeadvising import handle_codeadvising, load_all_rag_metadata
+from codeadvising import handle_codeadvising
+from rag import load_all_rag_metadata
+#:from codemodification import handle_codemodification, load_all_rag_metadata
 from explaining import handle_explaining
 from prompt_io import resolve_output_file
 
@@ -252,11 +254,6 @@ def extract_astraai_prompt(body: str) -> Optional[str]:
         return None
     return body[idx + len(marker):].strip()
 
-
-def handle_code_generation(user_prompt: str, pr: Optional[int]):
-    pass
-
-
 def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
     log(f"Handling prompt: {user_prompt}")
 
@@ -288,6 +285,7 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                top_k=TOP_K,
                                embed_model=EMBED_MODEL,
                                ollama_bin=OLLAMA_BIN)
+
     if intent == "explaining":
         
         return handle_explaining(user_prompt=user_prompt,
@@ -299,6 +297,19 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                top_k=TOP_K,
                                embed_model=EMBED_MODEL,
                                ollama_bin=OLLAMA_BIN)
+
+    if intent == "codemodification":
+        
+        return handle_codeadvising(user_prompt=user_prompt,
+                               pr=pr,
+                               log=log,
+                               run_llm=run_llm,
+                               emit_response=emit_response,
+                               rag_metadata=RAG_METADATA,
+                               top_k=TOP_K,
+                               embed_model=EMBED_MODEL,
+                               ollama_bin=OLLAMA_BIN)
+   
 
     # default = code generation / editing
     return handle_code_generation(user_prompt, pr)
