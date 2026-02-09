@@ -5,6 +5,8 @@ import numpy as np
 from typing import List, Dict, Any, Optional, Callable
 from rag import build_rag_context
 import re
+import sys
+from regex import extract_class_name
 
 def classify_task_llm(prompt: str, pr, run_llm: Callable) -> str:
     """
@@ -65,22 +67,9 @@ User prompt:
 
     return task_type_clean
 
-#def handle_codemodification_router(...):
+   
 
-#    task_type = classify_task_llm(user_prompt)
-#    log(f"[INFO] task_type = {task_type}")
-
-#    if task_type == "ADD_CLASS_METHOD":
-#        return handle_add_class_method(...)
-
-#    elif task_type == "MERGE_CODE_SNIPPET_AS_FUNCTION":
-#        return handle_merge_snippet(...)
-
-#    else:
-#        return handle_legacy_rag_llm(...)
-
-
-def handle_codemodification(
+def handle_add_class_method(
     *,
     user_prompt: str,
     pr: Optional[int],
@@ -91,9 +80,10 @@ def handle_codemodification(
     top_k,
     embed_model: str,
     ollama_bin: str,
-) -> None:
+    ) -> None:
+
     """
-    Code generation using RAG context + LLM.
+    Code modification using RAG context + LLM.
     """
 
     log("[INFO] Handling RAG-based code generation")
@@ -110,7 +100,44 @@ def handle_codemodification(
         min_sim=0.3,
     )
 
+    print(context)
+    sys.exit()
 
+def handle_legacy_llm_rag(*,
+    user_prompt: str,
+    pr: Optional[int],
+    log: Callable,
+    run_llm: Callable,
+    emit_response: Callable,
+    rag_metadata,
+    top_k,
+    embed_model: str,
+    ollama_bin: str,
+    ) -> None:
+
+
+    """
+    Code modification using RAG context + LLM.
+    """
+
+    log("[INFO] Handling RAG-based code generation")
+
+    # -----------------------------
+    # Retrieve context via RAG
+    # -----------------------------
+    context = build_rag_context(
+        user_prompt,
+        metadata=rag_metadata,
+        embed_model=embed_model,
+        ollama_bin=ollama_bin,
+        top_k=top_k,
+        min_sim=0.3,
+    )
+
+    print(context)    
+
+
+    sys.exit()
     # -----------------------------
     # Build code advising prompt
     # -----------------------------
@@ -146,3 +173,42 @@ USER PROMPT:
         pr,
         "### 🧠 RAG Code Generation\n\n```cpp\n" + response + "\n```",
     )
+
+def handle_codemodification(*,
+    user_prompt: str,
+    pr: Optional[int],
+    log: Callable,
+    run_llm: Callable,
+    emit_response: Callable,
+    rag_metadata,
+    top_k,
+    embed_model: str,
+    ollama_bin: str,):
+
+    task_type = classify_task_llm(prompt=user_prompt,
+                                      pr=pr,
+                                      run_llm=run_llm)
+
+    print("The task type is", task_type)
+
+    if(task_type == "ADD_CLASS_METHOD"):
+       #find the class into which the function has to be addedi
+        class_name = extract_class_name(prompt=user_prompt);
+        print("The class name is ", class_name);
+        if(class_name == None):
+            print("You are trying to do file modification by adding a function to a class. "
+                   "This requires specifying the name of the class into which the change has to be made")
+            sys.exit();
+
+    log(f"[INFO] task_type = {task_type}")
+
+    if task_type == "ADD_CLASS_METHOD":
+        handle_add_class_method(user_prompt=user_prompt,
+                                pr=pr,
+                                log=log,
+                                run_llm=run_llm,
+                                emit_response=emit_response,
+                                rag_metadata=rag_metadata,
+                                top_k=top_k,
+                                embed_model=embed_model,
+                                ollama_bin=ollama_bin)

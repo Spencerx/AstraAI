@@ -300,22 +300,15 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
 
     if intent == "codemodification":
       
-        task_type = classify_task_llm(prompt=user_prompt,
-                                      pr=pr,
-                                      run_llm=run_llm)
- 
-        print("The task type is", task_type)
-        exit;
-
-        #return handle_codemodification(user_prompt=user_prompt,
-         #                      pr=pr,
-         #                      log=log,
-         #                      run_llm=run_llm,
-         #                      emit_response=emit_response,
-         #                      rag_metadata=RAG_METADATA,
-         #                      top_k=TOP_K,
-         #                      embed_model=EMBED_MODEL,
-         #                      ollama_bin=OLLAMA_BIN)
+        return handle_codemodification(user_prompt=user_prompt,
+                               pr=pr,
+                               log=log,
+                               run_llm=run_llm,
+                               emit_response=emit_response,
+                               rag_metadata=RAG_METADATA,
+                               top_k=TOP_K,
+                               embed_model=EMBED_MODEL,
+                               ollama_bin=OLLAMA_BIN)
    
 
     # default = code generation / editing
