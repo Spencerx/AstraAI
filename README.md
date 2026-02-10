@@ -46,7 +46,10 @@ mkdir <path-to-huggingface>/models
 
 # Download the model of your choice from hugging face
 # For example, to download the Mistral 7B model
-hf download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <path-to-huggingface>/models/<dir-to-install> 
+hf download mistralai/Mistral-7B-Instruct-v0.2 --local-dir <path-to-huggingface>/models/<dir-to-install>
+
+# Install clang tools for python
+pip install libclang
 ```
 
 ## Hugging Face Authentication
