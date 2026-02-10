@@ -5,13 +5,21 @@ On Perlmutter, the Python environment with all required packages is installed in
 Include the following lines in your `~/.bash_profile` and then apply the changes:
 
 ```bash
+# Path to the python environment with all necessary packages
 export MODCON_ENV=/global/cfs/cdirs/m2957/nataraj2/modcon-env
+# Path to the ollama runtime binary
 alias ollama=/global/cfs/cdirs/m2957/nataraj2/Tools/ollama/bin/ollama
+# Path to the llm models for ollama
 export OLLAMA_MODELS=/global/cfs/cdirs/m2957/nataraj2/Tools/ollama/ollama_models
 export OPENAI_API_BASE=http://localhost:11434/v1
+# Ollama LLM runtime
 export OPENAI_API_KEY=ollama
 export PYTHONPATH=/global/cfs/cdirs/m2957/nataraj2/modcon-env/lib/python3.11/site-packages:$PYTHONPATH
+# Hugging Face for LLM model downloads
 export HF_HOME=/global/cfs/cdirs/m2957/nataraj2/Tools/huggingface/cache
+# Clang tools
+export PATH=/global/common/software/nersc/pe/gpu/llvm/20.1.3/bin:$PATH
+export LD_LIBRARY_PATH=/global/common/software/nersc/pe/gpu/llvm/20.1.3/lib:$LD_LIBRARY_PATH
 ```
 
 Then do
