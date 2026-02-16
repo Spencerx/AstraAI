@@ -20,7 +20,6 @@ if parent_dir not in sys.path:
 # LOCAL MODULE IMPORTS
 # ============================================================
 from llm import run_ollama
-from embeddings import get_embedding
 from intent import get_user_intent
 from scaffolding import handle_scaffolding, copy_scaffold
 from compilation import handle_compilation
@@ -69,7 +68,6 @@ def parse_args():
     parser.add_argument("--rag-metadata-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
     parser.add_argument("--hpc-code-examples-dir", type=str, default=None)
     parser.add_argument("--top-k", type=int, default=5)
-    parser.add_argument("--ollama-bin", type=str, default=None)
     return parser.parse_args()
 
 ARGS = parse_args()
@@ -78,7 +76,6 @@ HPC_CODE_EXAMPLES_DIR = ARGS.hpc_code_examples_dir
 LLM_MODEL = ARGS.llm_model
 EMBED_MODEL = ARGS.embed_model
 TOP_K = ARGS.top_k
-OLLAMA_BIN = ARGS.ollama_bin
 TERMINAL_MODE = ARGS.terminal
 
 RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
@@ -149,6 +146,16 @@ def post_astraai_comment(pr: int, message: str):
     body = f"🚀 **Agent astraai commented:**\n\n{message}"
     post_comment(pr, body)
 
+def emit_response_code_only(pr: Optional[int], message: str):
+    if TERMINAL_MODE:
+        print(message)
+    else:
+        # ✅ call the real GitHub comment function, not itself
+        assert pr is not None
+        post_astraai_comment(pr, message)
+
+
+
 def emit_response(pr: Optional[int], message: str):
     if TERMINAL_MODE:
         print("\n" + "=" * 60)
@@ -205,7 +212,7 @@ def find_latest_comment(comments: List[ConversationComment]) -> Optional[Convers
 
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
-    out = run_ollama(prompt, LLM_MODEL, OLLAMA_BIN)
+    out = run_ollama(prompt, LLM_MODEL)
     if out is None:
         emit_response(pr, "❌ LLM call failed.")
         return ""
@@ -257,7 +264,7 @@ def extract_astraai_prompt(body: str) -> Optional[str]:
 def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
     log(f"Handling prompt: {user_prompt}")
 
-    intent = get_user_intent(user_prompt, LLM_MODEL, OLLAMA_BIN)
+    intent = get_user_intent(user_prompt, LLM_MODEL)
     print("The intent is ", intent)
 
     if intent == "scaffolding":
@@ -283,8 +290,7 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                emit_response=emit_response,
                                rag_metadata=RAG_METADATA,
                                top_k=TOP_K,
-                               embed_model=EMBED_MODEL,
-                               ollama_bin=OLLAMA_BIN)
+                               embed_model=EMBED_MODEL)
 
     if intent == "explaining":
         
@@ -295,8 +301,7 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                emit_response=emit_response,
                                rag_metadata=RAG_METADATA,
                                top_k=TOP_K,
-                               embed_model=EMBED_MODEL,
-                               ollama_bin=OLLAMA_BIN)
+                               embed_model=EMBED_MODEL)
 
     if intent == "codemodification":
       
@@ -305,10 +310,10 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                log=log,
                                run_llm=run_llm,
                                emit_response=emit_response,
+                               emit_response_code_only=emit_response_code_only,
                                rag_metadata=RAG_METADATA,
                                top_k=TOP_K,
-                               embed_model=EMBED_MODEL,
-                               ollama_bin=OLLAMA_BIN)
+                               embed_model=EMBED_MODEL)
    
 
     # default = code generation / editing

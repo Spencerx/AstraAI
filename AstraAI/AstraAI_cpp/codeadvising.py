@@ -16,7 +16,6 @@ def handle_codeadvising(
     rag_metadata,
     top_k,
     embed_model: str,
-    ollama_bin: str,
 ) -> None:
     """
     Code generation using RAG context + LLM.
@@ -31,7 +30,6 @@ def handle_codeadvising(
         user_prompt,
         metadata=rag_metadata,
         embed_model=embed_model,
-        ollama_bin=ollama_bin,
         top_k=top_k,
         min_sim=0.3,
     )

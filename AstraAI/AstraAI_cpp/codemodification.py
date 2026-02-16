@@ -66,9 +66,7 @@ User prompt:
         return "LEGACY"
 
     return task_type_clean
-
-   
-
+ 
 def handle_add_class_method(
     *,
     user_prompt: str,
@@ -76,11 +74,11 @@ def handle_add_class_method(
     log: Callable,
     run_llm: Callable,
     emit_response: Callable,
+    emit_response_code_only: Callable,
     rag_metadata,
     top_k,
     embed_model: str,
-    ollama_bin: str,
-    ) -> None:
+    class_name: str) -> None:
 
     """
     Code modification using RAG context + LLM.
@@ -95,13 +93,74 @@ def handle_add_class_method(
         user_prompt,
         metadata=rag_metadata,
         embed_model=embed_model,
-        ollama_bin=ollama_bin,
         top_k=top_k,
         min_sim=0.3,
     )
 
-    print(context)
+    #print(context)
+# -----------------------------
+    # Build code advising prompt
+    # -----------------------------
+    prompt = f"""
+You are an AMReX / C++ expert. Your task is to write correct, compilable C++ code.
+
+USER PROMPT:
+{user_prompt}
+
+CONSTRAINTS (STRICT):
+1. Do NOT modify the function signature.
+2. Do NOT add arguments.
+3. All required data already exists as class members.
+4. Access class members directly.
+5. Do NOT redefine any member variables.
+6. Write exactly one function definition.
+7. Output ONLY the function code.
+8. Use MFIter and ParallelFor for GPU parallelization.
+
+
+---------------- REFERENCE CONTEXT ----------------
+{context}   
+
+The member variables and their data types are
+amrex::Vector<int> istep
+amrex::Vector<int> nsubsteps
+amrex::Vector<amrex::Real> t_new
+amrex::Vector<amrex::Real> t_old
+amrex::Vector<amrex::Real> dt
+amrex::Vector<amrex::MultiFab> phi_new
+amrex::Vector<amrex::MultiFab> phi_old
+amrex::Vector<amrex::BCRec> bcs
+amrex::Vector<std::unique_ptr<amrex::FluxRegister>> flux_reg
+amrex::Vector<amrex::Array<amrex::MultiFab, 3>> facevel
+int max_step = std::numeric_limits<int>::max()
+amrex::Real stop_time = std::numeric_limits<amrex::Real>::max()
+std::string restart_chkfile = ""
+amrex::Real cfl = 0.69999999999999996
+int regrid_int = 2
+int do_reflux = 1
+int do_subcycle = 1
+std::string plot_file {"plt"}
+int plot_int = -1
+
+------------------------------------------------
+Write the requested C++ function below:
+Output only valid C++ code. Do not use Python, pseudocode, or any other language.
+Use proper C++ types, loops, and AMReX constructs.
+"""
+    # -----------------------------
+    # LLM call
+    # -----------------------------
+    response = run_llm(prompt, pr)
+    if not response:
+        return
+
+    emit_response_code_only(
+        pr,
+        response,
+    )
+
     sys.exit()
+
 
 def handle_legacy_llm_rag(*,
     user_prompt: str,
@@ -112,7 +171,6 @@ def handle_legacy_llm_rag(*,
     rag_metadata,
     top_k,
     embed_model: str,
-    ollama_bin: str,
     ) -> None:
 
 
@@ -129,7 +187,6 @@ def handle_legacy_llm_rag(*,
         user_prompt,
         metadata=rag_metadata,
         embed_model=embed_model,
-        ollama_bin=ollama_bin,
         top_k=top_k,
         min_sim=0.3,
     )
@@ -180,10 +237,11 @@ def handle_codemodification(*,
     log: Callable,
     run_llm: Callable,
     emit_response: Callable,
+    emit_response_code_only: Callable,
     rag_metadata,
     top_k,
     embed_model: str,
-    ollama_bin: str,):
+    ):
 
     task_type = classify_task_llm(prompt=user_prompt,
                                       pr=pr,
@@ -208,7 +266,8 @@ def handle_codemodification(*,
                                 log=log,
                                 run_llm=run_llm,
                                 emit_response=emit_response,
+                                emit_response_code_only=emit_response_code_only,
                                 rag_metadata=rag_metadata,
                                 top_k=top_k,
                                 embed_model=embed_model,
-                                ollama_bin=ollama_bin)
+                                class_name=class_name)

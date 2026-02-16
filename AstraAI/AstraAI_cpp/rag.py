@@ -60,38 +60,28 @@ def retrieve_relevant_chunks(
     # Return top_k full chunks
     return filtered[:top_k]
 
-def embed_query(
-    text: str,
-    *,
-    embed_model: str,
-    ollama_bin: str,
-) -> np.ndarray:
+import numpy as np
+import ollama
 
-    import subprocess
-    import json
+# Create a persistent client once
+client = ollama.Client()
 
-    proc = subprocess.Popen(
-        [ollama_bin, "run", embed_model],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
+def embed_query(text: str, *, embed_model: str) -> np.ndarray:
+    """
+    Return the embedding for `text` using Ollama's Python API.
+    """
+    response = client.embeddings(
+        model=embed_model,
+        prompt=text
     )
-
-    stdout, stderr = proc.communicate(input=text)
-
-    if proc.returncode != 0:
-        raise RuntimeError(stderr.strip() or stdout.strip())
-
-    return np.array(json.loads(stdout.strip()), dtype=np.float64)
-
+    # Ollama API returns embedding as a list
+    return np.array(response["embedding"], dtype=np.float64)
 
 def build_rag_context(
     user_prompt: str,
     *,
     metadata,
     embed_model: str,
-    ollama_bin: str,
     top_k: int,
     min_sim: float,
 ) -> str:
@@ -102,7 +92,6 @@ def build_rag_context(
     q = embed_query(
         user_prompt,
         embed_model=embed_model,
-        ollama_bin=ollama_bin,
     )
 
     # --------------------------------------------------

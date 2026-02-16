@@ -2,7 +2,7 @@ import json
 from llm import run_ollama
 import re
 
-def get_user_intent(user_prompt, model, ollama_bin):
+def get_user_intent(user_prompt, model):
     """
     Determine the user's intent for general Fortran/HPC code requests.
 
@@ -108,7 +108,7 @@ Return ONLY valid JSON:
 User request:
 {user_prompt}
 """
-    out = run_ollama(prompt, model, ollama_bin)
+    out = run_ollama(prompt, model)
 
     try:
         result = json.loads(out)
