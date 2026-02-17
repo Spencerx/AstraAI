@@ -7,6 +7,8 @@ from rag import build_rag_context
 import re
 import sys
 from regex import extract_class_name
+from regex import extract_file_name
+from ast_cpp import extract_member_variables
 
 def classify_task_llm(prompt: str, pr, run_llm: Callable) -> str:
     """
@@ -78,7 +80,8 @@ def handle_add_class_method(
     rag_metadata,
     top_k,
     embed_model: str,
-    class_name: str) -> None:
+    class_name: str,
+    file_name: str) -> None:
 
     """
     Code modification using RAG context + LLM.
@@ -98,12 +101,22 @@ def handle_add_class_method(
     )
 
     #print(context)
-# -----------------------------
+
+    members = extract_member_variables(
+        class_name,
+        file_name,
+        compile_commands_path="compile_commands.json"
+    )
+
+    member_context = "\n".join(members)
+
+    # -----------------------------
     # Build code advising prompt
     # -----------------------------
     prompt = f"""
 You are an AMReX / C++ expert. Your task is to write correct, compilable C++ code.
 
+Write the requested C++ function below:
 USER PROMPT:
 {user_prompt}
 
@@ -121,32 +134,16 @@ CONSTRAINTS (STRICT):
 ---------------- REFERENCE CONTEXT ----------------
 {context}   
 
-The member variables and their data types are
-amrex::Vector<int> istep
-amrex::Vector<int> nsubsteps
-amrex::Vector<amrex::Real> t_new
-amrex::Vector<amrex::Real> t_old
-amrex::Vector<amrex::Real> dt
-amrex::Vector<amrex::MultiFab> phi_new
-amrex::Vector<amrex::MultiFab> phi_old
-amrex::Vector<amrex::BCRec> bcs
-amrex::Vector<std::unique_ptr<amrex::FluxRegister>> flux_reg
-amrex::Vector<amrex::Array<amrex::MultiFab, 3>> facevel
-int max_step = std::numeric_limits<int>::max()
-amrex::Real stop_time = std::numeric_limits<amrex::Real>::max()
-std::string restart_chkfile = ""
-amrex::Real cfl = 0.69999999999999996
-int regrid_int = 2
-int do_reflux = 1
-int do_subcycle = 1
-std::string plot_file {"plt"}
-int plot_int = -1
+CLASS MEMBER VARIABLES:
+{member_context}
 
 ------------------------------------------------
-Write the requested C++ function below:
 Output only valid C++ code. Do not use Python, pseudocode, or any other language.
 Use proper C++ types, loops, and AMReX constructs.
 """
+    print(prompt)
+
+
     # -----------------------------
     # LLM call
     # -----------------------------
@@ -252,7 +249,9 @@ def handle_codemodification(*,
     if(task_type == "ADD_CLASS_METHOD"):
        #find the class into which the function has to be addedi
         class_name = extract_class_name(prompt=user_prompt);
+        file_name = extract_file_name(prompt=user_prompt);
         print("The class name is ", class_name);
+        print("The file name is ", file_name);
         if(class_name == None):
             print("You are trying to do file modification by adding a function to a class. "
                    "This requires specifying the name of the class into which the change has to be made")
@@ -270,4 +269,6 @@ def handle_codemodification(*,
                                 rag_metadata=rag_metadata,
                                 top_k=top_k,
                                 embed_model=embed_model,
-                                class_name=class_name)
+                                class_name=class_name,
+                                file_name=file_name,
+                                )
