@@ -58,6 +58,7 @@ Do not output the reference code itself.
 
 USER PROMPT:
 {user_prompt}
+Output only valid C++ code. Do not use Python, pseudocode, or any other language.
 """
     # -----------------------------
     # LLM call

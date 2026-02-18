@@ -77,6 +77,7 @@ def embed_query(text: str, *, embed_model: str) -> np.ndarray:
     # Ollama API returns embedding as a list
     return np.array(response["embedding"], dtype=np.float64)
 
+
 def build_rag_context(
     user_prompt: str,
     *,
@@ -112,13 +113,12 @@ def build_rag_context(
 
     with open(output_file, "w") as f:
         for i, chunk in enumerate(chunks, 1):
-            meta = chunk.get("metadata", {})
             code = chunk.get("text", "")
 
             enriched = f"""
-{code}
-"""
-            f.write(f"{enriched}")
+            {code}
+            """
+            f.write(enriched)
             contexts.append(enriched)
 
     print(f"[INFO] Retrieved RAG chunks saved to {output_file}")
@@ -127,3 +127,4 @@ def build_rag_context(
     # Return combined context for the LLM
     # --------------------------------------------------
     return "\n\n".join(contexts)
+

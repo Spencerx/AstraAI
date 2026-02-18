@@ -4,16 +4,13 @@ import ollama
 client = ollama.Client(host="http://localhost:11434")
 
 def run_ollama(prompt: str, model: str, seed: int = 42) -> str:
-    """
-    Run Ollama LLM deterministically using the official Python client.
-    """
 
     response = client.generate(
         model=model,
         prompt=prompt,
         stream=False,
         options={
-            "temperature": 0,
+            "temperature": 0.0,
             "top_p": 1,
             "top_k": 1,
             "seed": seed,

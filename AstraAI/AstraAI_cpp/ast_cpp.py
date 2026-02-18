@@ -93,6 +93,7 @@ match fieldDecl(hasAncestor(cxxRecordDecl(hasName("{class_name}")))).bind("f")
 
         # Normalize whitespace
         field = re.sub(r'\s+', ' ', field)
+        field = field + ";"
 
         cleaned_fields.append(field)
 

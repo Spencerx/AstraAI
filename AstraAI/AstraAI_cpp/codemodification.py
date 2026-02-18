@@ -115,12 +115,12 @@ def handle_add_class_method(
     # -----------------------------
     prompt = f"""
 You are an AMReX / C++ expert. Your task is to write correct, compilable C++ code.
+Output *only valid C++ code*. *Do not use Python, pseudocode, or any other language.*
+Use proper C++ types, loops, and AMReX constructs.
 
-Write the requested C++ function below:
-USER PROMPT:
-{user_prompt}
 
 CONSTRAINTS (STRICT):
+0. IMPORTANT: Output ONLY valid C++ code. ***Do not output Python.***
 1. Do NOT modify the function signature.
 2. Do NOT add arguments.
 3. All required data already exists as class members.
@@ -131,15 +131,21 @@ CONSTRAINTS (STRICT):
 8. Use MFIter and ParallelFor for GPU parallelization.
 
 
----------------- REFERENCE CONTEXT ----------------
+---------------- RAG REFERENCE CONTEXT ----------------
 {context}   
 
-CLASS MEMBER VARIABLES:
+```
+
+---------------- MEMBER VARIABLE CONTEXT ---------------
+The member variables in the class are
 {member_context}
 
 ------------------------------------------------
-Output only valid C++ code. Do not use Python, pseudocode, or any other language.
-Use proper C++ types, loops, and AMReX constructs.
+
+Write the requested C++ function below:
+USER PROMPT:
+{user_prompt}
+
 """
     print(prompt)
 
@@ -156,7 +162,7 @@ Use proper C++ types, loops, and AMReX constructs.
         response,
     )
 
-    sys.exit()
+    #sys.exit()
 
 
 def handle_legacy_llm_rag(*,
