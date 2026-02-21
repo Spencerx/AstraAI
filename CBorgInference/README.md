@@ -20,7 +20,13 @@ Replace `<cborg-key>` with the key obtained in Step 1.
 source ~/.bash_profile
 ```
 
-4. Run the inference script:
+4. Enter the modcon Python environment 
+```
+source <path-to-modcon-env>/bin/activate
+```
+`<path-to-modcon-env>` is the path to the environment created in [Step 1 here](https://github.com/AIModCon/modcon-hpc/tree/main).
+
+5. Run the inference script:
 
 ```
 python3 cborg_inference.py --cborg-model=<cborg-model> --prompt-file=<user-prompt-file>
