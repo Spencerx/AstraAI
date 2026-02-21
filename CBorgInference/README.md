@@ -8,23 +8,23 @@ This repository demonstrates how to perform inference using **CBorg LBL models**
 
 2. Add your API key to your environment by editing `~/.bash_profile`:
 
-\```bash
+```
 export CBORG_API_KEY=<cborg-key>
-\```
+```
 
 Replace `<cborg-key>` with the key obtained in Step 1.
 
 3. Apply the changes:
 
-\```bash
+```
 source ~/.bash_profile
-\```
+```
 
 4. Run the inference script:
 
-\```bash
+```
 python3 cborg_inference.py --cborg-model=<cborg-model> --prompt-file=<user-prompt-file>
-\```
+```
 
    **Arguments:**
 
@@ -33,7 +33,7 @@ python3 cborg_inference.py --cborg-model=<cborg-model> --prompt-file=<user-promp
 
 > Example:
 
-\```bash
+```
 python3 cborg_inference.py --cborg-model=amazon/claude-sonnet-4-6-high --prompt-file=user_prompt.txt
-\```
+```
 
