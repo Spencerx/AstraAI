@@ -34,7 +34,7 @@ python3 cborg_inference.py --cborg-model=<cborg-model> --prompt-file=<user-promp
 
    **Arguments:**
 
-   - `--cborg-model`: Name of the CBorg model to use. A list of available models is provided in `cborg_models_list.txt`.  
+   - `--cborg-model`: Name of the CBorg model to use. A list of available models is provided in `cborg_models_list.txt` present in the current directory.
    - `--prompt-file`: Path to the text file containing the user prompt.
 
 > Example:
