@@ -4,7 +4,7 @@ This repository demonstrates how to perform inference using **AmSC models**.
 
 ## Steps
 
-1. Go to the [AmSC webpage](https://amsc.lbl.gov/api_examples/) and check the **Key Management** section to create an API key.
+1. Go to the [AmSC webpage](https://api.i2-core.american-science-cloud.org/) and click the **API Key Manager** on the top right menu and create a key.
 
 2. Add your API key to your environment by editing `~/.bash_profile`:
 
