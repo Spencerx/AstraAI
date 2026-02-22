@@ -1,6 +1,6 @@
-# Inference using AmSC LBL models
+# Inference using AmSC models
 
-This repository demonstrates how to perform inference using **AmSC LBL models**.
+This repository demonstrates how to perform inference using **AmSC models**.
 
 ## Steps
 
