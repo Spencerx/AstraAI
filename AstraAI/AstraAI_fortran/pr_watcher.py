@@ -7,6 +7,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Optional
 import argparse
+import openai
 
 # ============================================================
 # Setup sys.path for local imports
@@ -53,19 +54,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="astraai PR watcher")
 
     parser.add_argument(
-        "--git-repo",
-        type=str,
-        default=None,
-        help="GitHub repository in the form org/repo (e.g., AIModCon/repo-for-agent-testing)",
-    )
-
-    parser.add_argument(
-        "--terminal",
-        action="store_true",
-        help="Run in terminal mode (no GitHub polling, print output only)",
-    )
-
-    parser.add_argument(
         "--prompt-file",
         type=str,
         help="File containing the user prompt (terminal mode only)",
@@ -78,6 +66,21 @@ def parse_args():
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--ollama-bin", type=str, default=None)
 
+    parser.add_argument(
+        "--git-repo",
+        type=str,
+        default=None,
+        help="GitHub repository in the form org/repo (e.g., AIModCon/repo-for-agent-testing)",
+    )
+
+    parser.add_argument(
+        "--terminal",
+        action="store_true",
+        help="Run in terminal mode (no GitHub polling, print output only)",
+    )
+
+    parser.add_argument("--use-cborg", action="store_true", help="Inference with CBorg LBL models")
+
     args = parser.parse_args()
 
     # =====================================================
@@ -87,6 +90,11 @@ def parse_args():
         parser.error(
             "The AI interaction mode should be given by either using "
             "--git-repo=<git_repo> option or using --terminal option in the command line"
+        )
+
+    if(args.git_repo and args.terminal):
+        parser.error(
+            "Only one of the options --terminal or --git-repo should be used "
         )
 
     return args
@@ -100,9 +108,9 @@ TOP_K = ARGS.top_k
 OLLAMA_BIN = ARGS.ollama_bin
 GIT_REPO = ARGS.git_repo
 TERMINAL_MODE = ARGS.terminal
+CBORG_MODE = ARGS.use_cborg
 
 RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
-
 
 # ============================================================
 # LOGGING
@@ -223,12 +231,48 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
 def find_latest_comment(comments: List[ConversationComment]) -> Optional[ConversationComment]:
     return max(comments, key=lambda c: c.created_at) if comments else None
 
+import openai
+import os
+
+def run_cborg(prompt, LLM_MODEL):
+    client = openai.OpenAI(
+        api_key=os.environ.get("CBORG_API_KEY"),
+        base_url="https://api.cborg.lbl.gov"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        msg = str(e).lower()
+
+        if "model" in msg and (
+            "not found" in msg or
+            "does not exist" in msg or
+            "unknown" in msg or
+            "invalid" in msg
+        ):
+            raise RuntimeError(
+                "The model specified using --llm-model is not available in cborg. "
+                "See cborg_models_list.txt for the available models"
+            ) from None
+
+        raise
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
-    out = run_ollama(prompt, LLM_MODEL, OLLAMA_BIN)
-    if out is None:
-        emit_response(pr, "❌ LLM call failed.")
-        return ""
+    if(CBORG_MODE):
+        out = run_cborg(prompt, LLM_MODEL)
+    else: 
+        out = run_ollama(prompt, LLM_MODEL, OLLAMA_BIN)
+        if out is None:
+            emit_response(pr, "❌ LLM call failed.")
+            return ""
     return out
 
 def write_output_file(output_file: str, content: str, pr: Optional[int]):

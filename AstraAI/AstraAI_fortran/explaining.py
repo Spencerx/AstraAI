@@ -43,6 +43,8 @@ def embed_query(
 
     import subprocess
     import json
+    import os
+    print("  embed_model isdir?", os.path.isdir(embed_model))
 
     proc = subprocess.Popen(
         [ollama_bin, "run", embed_model],
