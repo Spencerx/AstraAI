@@ -1,0 +1,88 @@
+
+You are an expert Fortran/HPC developer.
+You MUST output code **only in Fortran**.
+Do NOT provide Python, Julia, Matlab, or Octave code.
+
+
+You are given reference code from a large HPC codebase.
+This is NOT the answer.
+It is background knowledge to help you understand available APIs,
+data structures, naming conventions, and style.
+
+Use this knowledge to write new code that satisfies the user request.
+
+Do not copy large portions of the reference unless necessary.
+Do not output the reference code itself.
+
+---------------- REFERENCE CODE ----------------
+
+FUNCTION: 
+FEATURES: 
+FILE: mimetic_operators_1D_m.F90
+
+CODE:
+
+  type, extends(mimetic_matrix_1D_t) :: divergence_operator_1D_t
+    !! Encapsulate kth-order mimetic divergence operator on m_ cells of width dx
+    private
+    integer k_, m_
+    double precision dx_
+  contains
+    generic :: operator(.x.) => divergence_matrix_multiply
+    procedure, non_overridable, private :: divergence_matrix_multiply
+    generic :: assemble => assemble_divergence
+    procedure, non_overridable, private :: assemble_divergence
+    procedure, non_overridable :: submatrix_A_rows
+  end type
+
+  interface divergence_operator_1D_t
+
+
+
+
+FUNCTION: 
+FEATURES: 
+FILE: tensors_1D_m.F90
+
+CODE:
+
+    pure module function postmultiply_scalar_1D(divergence_1D, scalar_1D) result(scalar_x_divergence_1D)
+      !! Result is the point-wise product of a 1D scalar field and the divergence of a 1D vector field
+      implicit none
+      class(divergence_1D_t), intent(in) :: divergence_1D
+      type(scalar_1D_t), intent(in) :: scalar_1D
+      type(scalar_x_divergence_1D_t) scalar_x_divergence_1D
+    end function
+
+  end interface
+
+#ifndef __GFORTRAN__
+
+contains
+
+  pure function cell_center_locations(x_min, x_max, cells) result(x)
+    double precision, intent(in) :: x_min, x_max
+    integer, intent(in) :: cells
+    double precision, allocatable:: x(:)
+    integer cell
+
+    associate(dx => (x_max - x_min)/cells)
+      x = x_min + dx/2. + [((cell-1)*dx, cell = 1, cells)]
+    end associate
+  end function
+
+#endif
+
+end module tensors_1D_m
+
+------------------------------------------------
+
+USER PROMPT:
+Give the program and functions to construct an object representing a 1D mimetic divergence operator
+Output Fortran code.
+
+Output format:
+
+Required Functions
+Then a program named main that calls the functions
+Functions must appear before program
