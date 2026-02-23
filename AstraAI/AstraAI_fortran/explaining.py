@@ -101,8 +101,9 @@ def build_rag_context(
             code = chunk.get("text", "")
 
             enriched = f"""
-FUNCTION: {meta.get('function', '')}
-FEATURES: {", ".join(meta.get('features', []))}
+PURPOSE: {meta.get('purpose', '')}
+KEYWORDS: {", ".join(meta.get('keywords', []))}
+CONTEXT: {meta.get('context', '')}
 FILE: {meta.get('source_file', '')}
 
 CODE:
