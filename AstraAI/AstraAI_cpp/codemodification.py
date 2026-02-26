@@ -26,9 +26,7 @@ def classify_task_llm(prompt: str, pr, run_llm: Callable) -> str:
 
     # Task types with multiple phrasings for LLM guidance
     task_types = """
-ADD_CLASS_METHOD: Add a new function to a class (header + cpp)
-ADD_CLASS_METHOD: Implement a function
-ADD_CLASS_METHOD: Implement a method
+ADD_CLASS_METHOD: Add a new function to a class
 MERGE_CODE_SNIPPET_AS_FUNCTION: Wrap code snippet as a function and merge into a class
 CALL_EXISTING_FUNCTION: Insert a call to an existing function
 ADD_MEMBER_VARIABLE: Add a member variable to a class
@@ -65,7 +63,8 @@ User prompt:
 
     # Final check
     if task_type_clean not in valid_task_types:
-        return "LEGACY"
+        return "ADD_CLASS_METHOD"
+        #return "LEGACY"
 
     return task_type_clean
  
