@@ -80,6 +80,7 @@ def parse_args():
     )
 
     parser.add_argument("--use-cborg", action="store_true", help="Inference with CBorg LBL models")
+    parser.add_argument("--use-amsc", action="store_true", help="Inference with AmSC models")
 
     args = parser.parse_args()
 
@@ -97,6 +98,9 @@ def parse_args():
             "Only one of the options --terminal or --git-repo should be used "
         )
 
+    if(args.use_cborg and args.use_amsc):
+        parser.error("Only one of the options --use-cbprg or --use-amsc should be given")
+
     return args
 
 ARGS = parse_args()
@@ -109,6 +113,7 @@ OLLAMA_BIN = ARGS.ollama_bin
 GIT_REPO = ARGS.git_repo
 TERMINAL_MODE = ARGS.terminal
 CBORG_MODE = ARGS.use_cborg
+AMSC_MODE = ARGS.use_amsc
 
 RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
 
@@ -265,9 +270,44 @@ def run_cborg(prompt, LLM_MODEL):
 
         raise
 
+def run_amsc(prompt, LLM_MODEL):
+    client = openai.OpenAI(
+        api_key=os.environ.get("AMSC_API_KEY"),
+        base_url="https://api.i2-core.american-science-cloud.org/"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        msg = str(e).lower()
+
+        if "model" in msg and (
+            "not found" in msg or
+            "does not exist" in msg or
+            "unknown" in msg or
+            "invalid" in msg
+        ):
+            raise RuntimeError(
+                "The model specified using --llm-model is not available in cborg. "
+                "See cborg_models_list.txt for the available models"
+            ) from None
+
+        raise
+
+
+
 def run_llm(prompt: str, pr: Optional[int]) -> str:
     if(CBORG_MODE):
         out = run_cborg(prompt, LLM_MODEL)
+    elif (AMSC_MODE):
+        out = run_amsc(prompt, LLM_MODEL) 
     else: 
         out = run_ollama(prompt, LLM_MODEL, OLLAMA_BIN)
         if out is None:
