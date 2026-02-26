@@ -33,7 +33,6 @@ from prompt_io import resolve_output_file
 # ============================================================
 # CONFIG
 # ============================================================
-REPO = "AIModCon/repo-for-agent-testing"
 POLL_INTERVAL = 2  # seconds
 
 # ============================================================
@@ -68,7 +67,35 @@ def parse_args():
     parser.add_argument("--rag-metadata-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
     parser.add_argument("--hpc-code-examples-dir", type=str, default=None)
     parser.add_argument("--top-k", type=int, default=5)
-    return parser.parse_args()
+    parser.add_argument("--use-cborg", action="store_true", help="Inference with CBorg LBL models")
+    parser.add_argument("--use-amsc", action="store_true", help="Inference with AmSC models")
+    parser.add_argument(
+        "--git-repo",
+        type=str,
+        default=None,
+        help="GitHub repository in the form org/repo (e.g., AIModCon/repo-for-agent-testing)",
+    )
+
+    args = parser.parse_args()
+
+    # =====================================================
+    # Enforce mode rule
+    # =====================================================
+    if not args.git_repo and not args.terminal:
+        parser.error(
+            "The AI interaction mode should be given by either using "
+            "--git-repo=<git_repo> option or using --terminal option in the command line"
+        )
+
+    if(args.git_repo and args.terminal):
+        parser.error(
+            "Only one of the options --terminal or --git-repo should be used "
+        )
+
+    if(args.use_cborg and args.use_amsc):
+        parser.error("Only one of the options --use-cborg or --use-amsc should be given")
+
+    return args
 
 ARGS = parse_args()
 RAG_METADATA_DIR = ARGS.rag_metadata_dir
@@ -77,6 +104,9 @@ LLM_MODEL = ARGS.llm_model
 EMBED_MODEL = ARGS.embed_model
 TOP_K = ARGS.top_k
 TERMINAL_MODE = ARGS.terminal
+GIT_REPO = ARGS.git_repo
+CBORG_MODE = ARGS.use_cborg
+AMSC_MODE = ARGS.use_amsc
 
 RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
 
@@ -120,7 +150,7 @@ def get_all(url: str) -> List[dict]:
 
 def get_latest_open_pr() -> Optional[int]:
     r = requests.get(
-        f"{GITHUB_API}/repos/{REPO}/pulls",
+        f"{GITHUB_API}/repos/{GIT_REPO}/pulls",
         headers=HEADERS,
         params={"state": "open", "sort": "created", "direction": "desc"},
     )
@@ -210,9 +240,82 @@ def collect_conversation(pr: int) -> List[ConversationComment]:
 def find_latest_comment(comments: List[ConversationComment]) -> Optional[ConversationComment]:
     return max(comments, key=lambda c: c.created_at) if comments else None
 
+import openai
+import os
+
+def run_cborg(prompt, LLM_MODEL):
+    client = openai.OpenAI(
+        api_key=os.environ.get("CBORG_API_KEY"),
+        base_url="https://api.cborg.lbl.gov"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        msg = str(e).lower()
+
+        if "model" in msg and (
+            "not found" in msg or
+            "does not exist" in msg or
+            "unknown" in msg or
+            "invalid" in msg
+        ):
+            raise RuntimeError(
+                "The model specified using --llm-model is not available in cborg. "
+                "See cborg_models_list.txt for the available models"
+            ) from None
+
+        raise
+
+def run_amsc(prompt, LLM_MODEL):
+    client = openai.OpenAI(
+        api_key=os.environ.get("AMSC_API_KEY"),
+        base_url="https://api.i2-core.american-science-cloud.org/"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        msg = str(e).lower()
+
+        if "model" in msg and (
+            "not found" in msg or
+            "does not exist" in msg or
+            "unknown" in msg or
+            "invalid" in msg
+        ):
+            raise RuntimeError(
+                "The model specified using --llm-model is not available in cborg. "
+                "See cborg_models_list.txt for the available models"
+            ) from None
+
+        raise
+
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
-    out = run_ollama(prompt, LLM_MODEL)
+    if(CBORG_MODE):
+        print("I am in CBORG MODE\n")
+        out = run_cborg(prompt, LLM_MODEL)
+    elif (AMSC_MODE):
+        print("I am in AMSC MODE\n")
+        out = run_amsc(prompt, LLM_MODEL)
+    else:
+        print("I am in Hugging face MODE\n")
+        out = run_ollama(prompt, LLM_MODEL)
     if out is None:
         emit_response(pr, "❌ LLM call failed.")
         return ""
