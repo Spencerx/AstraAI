@@ -99,7 +99,7 @@ def parse_args():
         )
 
     if(args.use_cborg and args.use_amsc):
-        parser.error("Only one of the options --use-cbprg or --use-amsc should be given")
+        parser.error("Only one of the options --use-cborg or --use-amsc should be given")
 
     return args
 
