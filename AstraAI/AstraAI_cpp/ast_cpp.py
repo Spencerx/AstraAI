@@ -65,8 +65,8 @@ match fieldDecl(hasAncestor(cxxRecordDecl(hasName("{class_name}")))).bind("f")
 
     clang_cmd = ["clang-query", file_name, "--"] + flags
 
-    print("Running clang-query command:\n")
-    print(" ".join(clang_cmd))
+    #print("Running clang-query command:\n")
+    #print(" ".join(clang_cmd))
 
     result = subprocess.run(
         clang_cmd,

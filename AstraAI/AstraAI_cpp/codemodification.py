@@ -11,6 +11,7 @@ from regex import extract_file_name
 from ast_cpp import extract_member_variables
 
 def classify_task_llm(prompt: str, pr, run_llm: Callable) -> str:
+    return "ADD_CLASS_METHOD"
     """
     Classify a user prompt into one of the predefined task types
     for code modification in a repo-aware HPC/C++ codebase.
@@ -86,7 +87,7 @@ def handle_add_class_method(
     Code modification using RAG context + LLM.
     """
 
-    log("[INFO] Handling RAG-based code generation")
+    #log("[INFO] Handling RAG-based code generation")
 
     # -----------------------------
     # Retrieve context via RAG
@@ -146,7 +147,7 @@ USER PROMPT:
 {user_prompt}
 
 """
-    print(prompt)
+    #print(prompt)
 
     # -----------------------------
     # LLM call
@@ -248,20 +249,20 @@ def handle_codemodification(*,
                                       pr=pr,
                                       run_llm=run_llm)
 
-    print("The task type is", task_type)
+    #print("The task type is", task_type)
 
     if(task_type == "ADD_CLASS_METHOD"):
        #find the class into which the function has to be addedi
         class_name = extract_class_name(prompt=user_prompt);
         file_name = extract_file_name(prompt=user_prompt);
-        print("The class name is ", class_name);
-        print("The file name is ", file_name);
+        #print("The class name is ", class_name);
+        #print("The file name is ", file_name);
         if(class_name == None):
             print("You are trying to do file modification by adding a function to a class. "
                    "This requires specifying the name of the class into which the change has to be made")
             sys.exit();
 
-    log(f"[INFO] task_type = {task_type}")
+    #log(f"[INFO] task_type = {task_type}")
 
     if task_type == "ADD_CLASS_METHOD":
         handle_add_class_method(user_prompt=user_prompt,

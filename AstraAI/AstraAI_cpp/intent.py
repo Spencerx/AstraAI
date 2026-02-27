@@ -1,8 +1,16 @@
 import json
 from llm import run_ollama
 import re
+from typing import List, Dict, Any, Optional, Callable
 
-def get_user_intent(user_prompt, model):
+def get_user_intent(*, 
+    user_prompt: str, 
+    pr: Optional[int],
+    run_llm: Callable,
+    ):
+
+    return "codemodification"
+
     """
     Determine the user's intent for general Fortran/HPC code requests.
 
@@ -16,6 +24,8 @@ def get_user_intent(user_prompt, model):
     """
 
     text = user_prompt.lower()
+
+
 
     # =====================================================
     # HARD RULE: COMPILATION ERRORS (NO LLM)
@@ -45,7 +55,7 @@ def get_user_intent(user_prompt, model):
     codeadvising_patterns = [
         r"how to ",
         r"give code snippets for",
-        r"give a sample code for",
+        r"Give the code for",
         r"give the program",
         r"show me how to implement",
         r"example.*code",
@@ -57,12 +67,6 @@ def get_user_intent(user_prompt, model):
 
     # 3️⃣ Code modification: specifically modifying existing files or routines
     codemodification_patterns = [
-        r"modify this routine",
-        r"modify this file",
-        r"update this subroutine",
-        r"change .* in file",
-        r"rewrite .* in file", 
-        r"Implement a function",
         r"Implement a new function",
         r"Implement a new method",
         r"Implement a method"
@@ -81,41 +85,3 @@ def get_user_intent(user_prompt, model):
     if any(re.search(pat, text, re.IGNORECASE) for pat in explaining_patterns):
         return "explaining"
 
-    # 5️⃣ Fallback: use LLM only for ambiguous requests
-    prompt = f"""
-You are deciding the FIRST ACTION an automated developer tool should take for a Fortran/HPC request.
-
-Choose EXACTLY ONE intent from:
-
-- scaffolding
-- compilation
-- codeadvising
-- explaining
-- codemodification
-- refactor
-
-DECISION RULES (STRICT):
-1. Scaffolding is when the user wants an existing template or starter code.
-2. Code advising is when the user wants example code, snippets, or illustrative routines.
-3. Compilation is when the user posts a compilation or linking error.
-4. Code modification is when the user asks to implement or modify existing routines/files.
-   Asking for code without asking to implement or modify or write into a file is codeadvising, not codemodification
-5. Explaining is when the user asks to understand or describe code.
-
-Return ONLY valid JSON:
-{{"intent": "<one of the above>"}}
-
-User request:
-{user_prompt}
-"""
-    out = run_ollama(prompt, model)
-
-    try:
-        result = json.loads(out)
-        intent = result.get("intent")
-        if intent not in ["scaffolding", "compilation", "codeadvising", "explaining", "codemodification", "refactor"]:
-            intent = "codeadvising"
-    except Exception:
-        intent = "codeadvising"
-
-    return intent

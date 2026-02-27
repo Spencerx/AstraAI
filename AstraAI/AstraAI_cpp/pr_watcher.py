@@ -176,15 +176,16 @@ def post_astraai_comment(pr: int, message: str):
     body = f"🚀 **Agent astraai commented:**\n\n{message}"
     post_comment(pr, body)
 
+
 def emit_response_code_only(pr: Optional[int], message: str):
+    GREEN = "\033[92m"
+    RESET = "\033[0m"
+
     if TERMINAL_MODE:
-        print(message)
+        print(f"{GREEN}{message}{RESET}")
     else:
-        # ✅ call the real GitHub comment function, not itself
         assert pr is not None
         post_astraai_comment(pr, message)
-
-
 
 def emit_response(pr: Optional[int], message: str):
     if TERMINAL_MODE:
@@ -305,16 +306,19 @@ def run_amsc(prompt, LLM_MODEL):
 
         raise
 
+BLUE = "\033[94m"
+RESET = "\033[0m"
+
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
     if(CBORG_MODE):
-        print("I am in CBORG MODE\n")
+        print(f"{BLUE}Loading {LLM_MODEL} from Cborg LBL{RESET}\n")
         out = run_cborg(prompt, LLM_MODEL)
     elif (AMSC_MODE):
-        print("I am in AMSC MODE\n")
+        print(f"{BLUE}Loading {LLM_MODEL} from American Science Cloud{RESET}\n")
         out = run_amsc(prompt, LLM_MODEL)
     else:
-        print("I am in Hugging face MODE\n")
+        print(f"{BLUE}Loading {LLM_MODEL} from Hugging face{RESET}\n")
         out = run_ollama(prompt, LLM_MODEL)
     if out is None:
         emit_response(pr, "❌ LLM call failed.")
@@ -365,10 +369,16 @@ def extract_astraai_prompt(body: str) -> Optional[str]:
     return body[idx + len(marker):].strip()
 
 def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
-    log(f"Handling prompt: {user_prompt}")
+    # ANSI code for yellow
+    YELLOW = "\033[93m"
+    RESET = "\033[0m"
 
-    intent = get_user_intent(user_prompt, LLM_MODEL)
-    print("The intent is ", intent)
+    log(f"User prompt: \n {YELLOW}{user_prompt}{RESET}\n")
+
+    intent = get_user_intent(user_prompt=user_prompt, 
+                             pr=pr, 
+                             run_llm=run_llm)
+    #print("The intent is ", intent)
 
     if intent == "scaffolding":
         return handle_scaffolding(user_prompt=user_prompt,
@@ -426,28 +436,48 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
 # MAIN WATCHER LOOP
 # ============================================================
 
+import os
+import sys
+import difflib
+from colorama import Fore, Style
+
 if TERMINAL_MODE:
-    if not ARGS.prompt_file:
-        print("ERROR: --prompt-file is required in terminal mode")
-        sys.exit(1)
+    print("[TERMINAL MODE] Codex-style interactive demo (prompt-file mode)")
 
-    if not os.path.exists(ARGS.prompt_file):
-        print(f"ERROR: prompt file {ARGS.prompt_file} not found")
-        sys.exit(1)
+    while True:
+        try:
+            prompt_file = input("Enter the prompt file (or 'exit'): ").strip()
 
-    with open(ARGS.prompt_file, "r") as f:
-        user_prompt = f.read().strip()
+            if not prompt_file:
+                continue
+            if prompt_file.lower() in {"exit", "quit"}:
+                print("Exiting terminal demo.")
+                sys.exit(0)
+                break
 
-    if not user_prompt:
-        print("ERROR: prompt file is empty")
-        sys.exit(1)
+            if not os.path.exists(prompt_file):
+                print(f"ERROR: prompt file {prompt_file} not found\n")
+                continue
 
-    log("[TERMINAL MODE] Running single prompt from file")
-    handle_user_prompt(
-        user_prompt=user_prompt,
-        pr=None,
-    )
-    sys.exit(0)
+            with open(prompt_file, "r", encoding="utf-8") as f:
+                user_prompt = f.read().strip()
+
+            if not user_prompt:
+                print("ERROR: prompt file is empty\n")
+                continue
+
+            log(f"[TERMINAL MODE] Running prompt from file: {prompt_file}")
+
+            handle_user_prompt(
+                user_prompt=user_prompt,
+                pr=None,
+            )
+
+            print()  # spacing before next prompt
+
+        except KeyboardInterrupt:
+            print("\nExiting terminal demo.")
+            sys.exit(0)
 
 SEEN = set()
 log("PR watcher started")
