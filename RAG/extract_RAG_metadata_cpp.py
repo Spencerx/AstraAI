@@ -14,6 +14,7 @@ EXCLUDE_DIRS = {".git", "build", "CMakeFiles"}
 OLLAMA_EMBED_URL = "http://127.0.0.1:11434/api/embeddings"
 
 MAX_EMBED_CHARS = 3000
+CODE_SNIPPET_CHARS = 400   # how much code goes into embedding
 EMBED_RETRIES = 2
 RETRY_SLEEP = 1.0
 
@@ -42,30 +43,50 @@ def embed_text(text: str, model: str):
 
 
 # ------------------------------------------------------------
-# NEW: Parse AI_METADATA blocks
+# Parse AI_METADATA block
 # ------------------------------------------------------------
 def parse_metadata_block(lines, start_idx):
     metadata = {}
+    user_intent_lines = []
+
     i = start_idx + 1
+    in_user_intent = False
 
     while i < len(lines):
-        line = lines[i].strip()
+        raw = lines[i].strip()
 
-        if not line.startswith("//"):
+        if not raw.startswith("//"):
             break
 
-        content = line.lstrip("/").strip()
+        content = raw.lstrip("/").strip()
+
+        # Detect user_intent block
+        if content.startswith("user_intent:"):
+            in_user_intent = True
+            i += 1
+            continue
+
+        if in_user_intent:
+            if ":" in content:  # next metadata field begins
+                in_user_intent = False
+            else:
+                user_intent_lines.append(content)
+                i += 1
+                continue
+
+        # Normal key: value pairs
         if ":" in content:
             key, val = content.split(":", 1)
             metadata[key.strip()] = val.strip()
 
         i += 1
 
+    metadata["user_intent"] = "\n".join(user_intent_lines).strip()
     return metadata, i
 
 
 # ------------------------------------------------------------
-# NEW: Extract chunks using AI_METADATA
+# Extract chunks using AI_METADATA
 # ------------------------------------------------------------
 def extract_chunks(file_path, example_name, example_root):
     chunks = []
@@ -97,12 +118,10 @@ def extract_chunks(file_path, example_name, example_root):
             except ValueError:
                 rel_path = file_path.name
 
+            # 🔴 NEW: embedding uses ONLY user_intent + code
             embedding_text = (
-                f"TASK TYPE: {metadata.get('task_type','')}\n"
-                f"DESCRIPTION: {metadata.get('description','')}\n"
-                f"KEYWORDS: {metadata.get('keywords','')}\n"
-                f"PATTERNS: {metadata.get('patterns','')}\n\n"
-                f"CODE:\n{full_code[:1000]}"
+                f"USER INTENT:\n{metadata.get('user_intent','')}\n\n"
+                #f"CODE SNIPPET:\n{full_code[:CODE_SNIPPET_CHARS]}"
             )
 
             chunks.append({
@@ -117,7 +136,6 @@ def extract_chunks(file_path, example_name, example_root):
                 },
                 "embedding_text": embedding_text
             })
-
         else:
             i += 1
 
@@ -125,7 +143,7 @@ def extract_chunks(file_path, example_name, example_root):
 
 
 # ------------------------------------------------------------
-# NEW: Process one code directory → one json
+# Process one code directory → one json
 # ------------------------------------------------------------
 def process_codebase(code_dir, out_dir, embed_model):
     example_name = code_dir.name
@@ -174,10 +192,9 @@ def process_codebase(code_dir, out_dir, embed_model):
 # ------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract AI_METADATA chunks with embeddings"
+        description="Extract AI_METADATA chunks with embeddings (user_intent focused)"
     )
-    parser.add_argument("--code-dir", required=True,
-                        help="Directory containing multiple codebases")
+    parser.add_argument("--code-dir", required=True)
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--embed-model", required=True)
 
@@ -187,7 +204,6 @@ def main():
     out_dir = Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # 🔴 iterate over subdirectories
     for subdir in code_root.iterdir():
         if subdir.is_dir():
             process_codebase(subdir, out_dir, args.embed_model)
