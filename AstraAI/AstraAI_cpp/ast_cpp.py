@@ -99,3 +99,58 @@ match fieldDecl(hasAncestor(cxxRecordDecl(hasName("{class_name}")))).bind("f")
 
     return cleaned_fields
 
+import subprocess
+import re
+
+def clang_query_span(filename, func, cls=None):
+    """
+    Return (source_file, start_line, start_col, end_line, end_col) of a function.
+    - Checks class method if cls is provided
+    - Always checks for free function
+    - Automatically identifies the file where the function is defined
+    """
+    cmd = [
+        "clang-query",
+        filename,
+        "--",
+        "-std=c++17"
+    ]
+
+    matchers = []
+    if cls:
+        # class method first
+        matchers.append(f'match cxxMethodDecl(hasName("{func}"), ofClass(hasName("{cls}"))).bind("fn")')
+
+    # always try free function
+    matchers.append(f'match functionDecl(hasName("{func}")).bind("fn")')
+
+    for matcher in matchers:
+        proc = subprocess.run(
+            cmd,
+            input="set output dump\n" + matcher,
+            text=True,
+            capture_output=True
+        )
+        out = proc.stdout
+
+        # clang-query output example:
+        # <Prob.H:10:1, line:30:1>
+        m = re.search(r"<(.+?):(\d+):(\d+),\s*line:(\d+):(\d+)>", out)
+        if m:
+            source_file = m.group(1)
+            start_line  = int(m.group(2))
+            start_col   = int(m.group(3))
+            end_line    = int(m.group(4))
+            end_col     = int(m.group(5))
+            return source_file, start_line, start_col, end_line, end_col
+
+    return None
+
+def linecol_to_offset(text, line, col):
+    # ensure integers
+    line = int(line)
+    col  = int(col)
+
+    lines = text.splitlines(keepends=True)
+    return sum(len(lines[i]) for i in range(line-1)) + (col-1)
+

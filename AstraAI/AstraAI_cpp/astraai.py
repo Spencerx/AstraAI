@@ -28,7 +28,7 @@ from rag import load_all_rag_metadata
 from codemodification import handle_codemodification, classify_task_llm
 from explaining import handle_explaining
 from prompt_io import resolve_output_file
-
+from code_editing import apply_conflict_patch
 
 # ============================================================
 # CONFIG
@@ -50,8 +50,42 @@ HEADERS = {
 
 GITHUB_API = "https://api.github.com"
 
+import argparse
+import shlex
+
+
 def parse_args():
+    def load_options_file(path):
+        """Load arguments from a text file into a flat list."""
+        args = []
+        with open(path, "r") as f:
+            for line in f:
+                line = line.strip()
+
+                # Skip blank lines and comments
+                if not line or line.startswith("#"):
+                    continue
+
+                # Respect quoted strings
+                args.extend(shlex.split(line))
+
+        return args
+
+    # -------------------------------------------------
+    # Pre-parse only to detect --options-file
+    # -------------------------------------------------
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--options-file", type=str)
+
+    pre_args, remaining_argv = pre_parser.parse_known_args()
+
+    # -------------------------------------------------
+    # Main parser
+    # -------------------------------------------------
     parser = argparse.ArgumentParser(description="astraai PR watcher")
+
+    parser.add_argument("--options-file", type=str, help="Path to options file")
+
     parser.add_argument(
         "--terminal",
         action="store_true",
@@ -64,7 +98,11 @@ def parse_args():
     )
     parser.add_argument("--llm-model", type=str, default="my-ollama-model")
     parser.add_argument("--embed-model", type=str, default="nomic-embed-text")
-    parser.add_argument("--rag-metadata-dir", type=str, default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/")
+    parser.add_argument(
+        "--rag-metadata-dir",
+        type=str,
+        default="../AMReX_Testing/amrex-custom-tutorials/rag_metadata/",
+    )
     parser.add_argument("--hpc-code-examples-dir", type=str, default=None)
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--use-cborg", action="store_true", help="Inference with CBorg LBL models")
@@ -73,29 +111,36 @@ def parse_args():
         "--git-repo",
         type=str,
         default=None,
-        help="GitHub repository in the form org/repo (e.g., AIModCon/repo-for-agent-testing)",
+        help="GitHub repository in the form org/repo",
     )
 
-    args = parser.parse_args()
+    # -------------------------------------------------
+    # Merge file args + CLI args
+    # CLI overrides file
+    # -------------------------------------------------
+    file_args = []
+    if pre_args.options_file:
+        file_args = load_options_file(pre_args.options_file)
 
-    # =====================================================
-    # Enforce mode rule
-    # =====================================================
+    args = parser.parse_args(file_args + remaining_argv)
+
+    # -------------------------------------------------
+    # Validation rules
+    # -------------------------------------------------
     if not args.git_repo and not args.terminal:
         parser.error(
-            "The AI interaction mode should be given by either using "
-            "--git-repo=<git_repo> option or using --terminal option in the command line"
+            "The AI interaction mode should be given by either "
+            "--git-repo=<git_repo> or --terminal"
         )
 
-    if(args.git_repo and args.terminal):
-        parser.error(
-            "Only one of the options --terminal or --git-repo should be used "
-        )
+    if args.git_repo and args.terminal:
+        parser.error("Only one of --terminal or --git-repo should be used")
 
-    if(args.use_cborg and args.use_amsc):
-        parser.error("Only one of the options --use-cborg or --use-amsc should be given")
+    if args.use_cborg and args.use_amsc:
+        parser.error("Only one of --use-cborg or --use-amsc should be given")
 
     return args
+
 
 ARGS = parse_args()
 RAG_METADATA_DIR = ARGS.rag_metadata_dir
@@ -309,13 +354,16 @@ def run_amsc(prompt, LLM_MODEL):
 BLUE = "\033[94m"
 RESET = "\033[0m"
 
+RED = "\033[91m"
 
 def run_llm(prompt: str, pr: Optional[int]) -> str:
     if(CBORG_MODE):
         print(f"{BLUE}Loading {LLM_MODEL} from Cborg LBL{RESET}\n")
         out = run_cborg(prompt, LLM_MODEL)
     elif (AMSC_MODE):
-        print(f"{BLUE}Loading {LLM_MODEL} from American Science Cloud{RESET}\n")
+        print(f"{RED}###################################################{RESET}\n"
+              f"{RED}Loading {LLM_MODEL} from American Science Cloud{RESET}\n"
+              f"{RED}####################################################{RESET}\n")
         out = run_amsc(prompt, LLM_MODEL)
     else:
         print(f"{BLUE}Loading {LLM_MODEL} from Hugging face{RESET}\n")
@@ -440,6 +488,8 @@ import os
 import sys
 import difflib
 from colorama import Fore, Style
+from regex import extract_file_name, extract_class_name
+from ast_cpp import clang_query_span, linecol_to_offset
 
 if TERMINAL_MODE:
     print("[TERMINAL MODE] Codex-style interactive demo (prompt-file mode)")
@@ -468,11 +518,31 @@ if TERMINAL_MODE:
 
             log(f"[TERMINAL MODE] Running prompt from file: {prompt_file}")
 
-            handle_user_prompt(
+            result = handle_user_prompt(
                 user_prompt=user_prompt,
                 pr=None,
             )
 
+             # 🔹 2️⃣ Ask user what to do
+            print("\nChoose an option:")
+            print("1. Let AstraAI edit the code")
+            print("2. Ask something else to AstraAI")
+
+            choice = input("Enter choice: ").strip()
+
+            if choice == "1":
+                # Apply patch
+                apply_conflict_patch(
+                    result["source_file"],
+                    result["code"],
+                    result["start_offset"],
+                    result["end_offset"],
+                    result["generated_function"]
+                )
+
+                print("\nCode updated with conflict markers.")
+                print("Review and resolve conflicts.\n")
+            
             print()  # spacing before next prompt
 
         except KeyboardInterrupt:

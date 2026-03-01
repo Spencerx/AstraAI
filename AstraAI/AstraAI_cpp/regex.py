@@ -88,3 +88,43 @@ def extract_file_name(prompt: str) -> Optional[str]:
 
     return None
 
+def extract_function_name(prompt: str) -> Optional[str]:
+    """
+    Extract file name from structured prompt.
+
+    Expected format:
+        class: AmrCoreAdv
+        file: AmrCoreAdv.cpp
+        ...
+
+    Falls back to natural language extraction if needed.
+    """
+
+    # Pattern 1 (PRIMARY): structured field
+    m = re.search(
+        r'^\s*function\s*:\s*([^\s]+)',
+        prompt,
+        re.MULTILINE
+    )
+    if m:
+        return m.group(1)
+
+    # ---- fallback patterns (optional safety) ----
+
+    # Pattern 2: "in AmrCoreAdv.cpp"
+    m = re.search(
+        r'\bin\s+([A-Za-z0-9_/\\.-]+\.(?:cpp|cc|cxx|C|hpp|h|H))',
+        prompt
+    )
+    if m:
+        return m.group(1)
+
+    # Pattern 3: standalone filename mention
+    m = re.search(
+        r'\b([A-Za-z0-9_/\\.-]+\.(?:cpp|cc|cxx|C|hpp|h|H))\b',
+        prompt
+    )
+    if m:
+        return m.group(1)
+
+    return None

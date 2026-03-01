@@ -6,9 +6,10 @@ from typing import List, Dict, Any, Optional, Callable
 from rag import build_rag_context
 import re
 import sys
-from regex import extract_class_name
-from regex import extract_file_name
+from regex import extract_class_name, extract_file_name, extract_function_name
 from ast_cpp import extract_member_variables
+from ast_cpp import clang_query_span, linecol_to_offset
+from code_editing import apply_conflict_patch
 
 def classify_task_llm(prompt: str, pr, run_llm: Callable) -> str:
     return "ADD_CLASS_METHOD"
@@ -100,7 +101,11 @@ def handle_add_class_method(
         min_sim=0.3,
     )
 
+    #print("The context is \n")
     #print(context)
+    #sys.exit()
+
+
 
     members = extract_member_variables(
         class_name,
@@ -109,6 +114,45 @@ def handle_add_class_method(
     )
 
     member_context = "\n".join(members)
+
+
+    filename = extract_file_name(prompt=user_prompt);
+    classname = extract_class_name(prompt=user_prompt);
+    funcname = extract_function_name(prompt=user_prompt);
+
+    # get the function span (automatically finds header if free function)
+    span = clang_query_span(filename, funcname, classname)
+
+    if span is None:
+        raise RuntimeError(f"Function {funcname} not found")
+
+    # unpack correctly
+    source_file, start_line, start_col, end_line, end_col = span
+
+    # read the file where the function is actually defined
+    with open(source_file, "r", encoding="utf-8") as f:
+        code = f.read()
+
+    # convert line/col to Python offsets
+    start_offset = linecol_to_offset(code, start_line, start_col)
+    end_offset   = linecol_to_offset(code, end_line, end_col)
+    end_offset = end_offset + 1
+
+    # extract the function text
+    original_fn = code[start_offset:end_offset]
+
+    #print("The extracted code function is from file:", source_file)
+    #print(original_fn)
+    if(original_fn):
+        func_code_for_prompt=f"""---------------- THE FUNCTION TO BE MODIFIED -------------
+            ```cpp
+            {original_fn}
+            ```cpp
+            """
+    print(original_fn);   
+    print()  # spacing before next prompt 
+
+
 
     # -----------------------------
     # Build code advising prompt
@@ -132,13 +176,17 @@ CONSTRAINTS (STRICT):
 
 
 ---------------- RAG REFERENCE CONTEXT ----------------
+```cpp
 {context}   
-
 ```
 
 ---------------- MEMBER VARIABLE CONTEXT ---------------
 The member variables in the class are
+```cpp
 {member_context}
+
+
+{func_code_for_prompt}
 
 ------------------------------------------------
 
@@ -146,8 +194,11 @@ Write the requested C++ function below:
 USER PROMPT:
 {user_prompt}
 
+In the resposne, do not include marker fences like ```cpp
 """
     #print(prompt)
+    with open("full_prompt.txt", "w") as f:
+        f.write(prompt)
 
     # -----------------------------
     # LLM call
@@ -161,8 +212,15 @@ USER PROMPT:
         response,
     )
 
+    return {
+    "source_file": source_file,
+    "code": code,
+    "start_offset": start_offset,
+    "end_offset": end_offset,
+    "generated_function": response,
+    }
+ 
     #sys.exit()
-
 
 def handle_legacy_llm_rag(*,
     user_prompt: str,
@@ -233,6 +291,8 @@ USER PROMPT:
         "### 🧠 RAG Code Generation\n\n```cpp\n" + response + "\n```",
     )
 
+   
+
 def handle_codemodification(*,
     user_prompt: str,
     pr: Optional[int],
@@ -265,7 +325,7 @@ def handle_codemodification(*,
     #log(f"[INFO] task_type = {task_type}")
 
     if task_type == "ADD_CLASS_METHOD":
-        handle_add_class_method(user_prompt=user_prompt,
+        result = handle_add_class_method(user_prompt=user_prompt,
                                 pr=pr,
                                 log=log,
                                 run_llm=run_llm,
@@ -277,3 +337,4 @@ def handle_codemodification(*,
                                 class_name=class_name,
                                 file_name=file_name,
                                 )
+        return result
