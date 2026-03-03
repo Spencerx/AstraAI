@@ -87,12 +87,16 @@ def handle_add_class_method(
     """
     Code modification using RAG context + LLM.
     """
+    BLUE = "\033[94m"
+    RED = "\033[91m"
+    RESET = "\033[0m"
 
     #log("[INFO] Handling RAG-based code generation")
 
     # -----------------------------
     # Retrieve context via RAG
     # -----------------------------
+    print(f"{RED}Performing Retrieval Augmented Generation {RESET}\n")
     context = build_rag_context(
         user_prompt,
         metadata=rag_metadata,
@@ -107,6 +111,7 @@ def handle_add_class_method(
 
 
 
+    print(f"{RED}Performing Abstract Syntax Tree info extraction {RESET}\n")
     members = extract_member_variables(
         class_name,
         file_name,
@@ -149,11 +154,12 @@ def handle_add_class_method(
             {original_fn}
             ```cpp
             """
-    print(original_fn);   
-    print()  # spacing before next prompt 
+    #print(original_fn);   
+    #print()  # spacing before next prompt 
 
 
 
+    print(f"{RED}Building the prompt: RAG chunks + AST info + user prompt {RESET}\n")
     # -----------------------------
     # Build code advising prompt
     # -----------------------------

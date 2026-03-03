@@ -27,7 +27,10 @@ def load_all_rag_metadata(rag_dir: str):
             chunk["embedding"] = np.array(emb, dtype=np.float64)
             metadata.append(chunk)
 
-    print(f"[RAG] Loaded {len(metadata)} chunks from {rag_dir}")
+    BLUE = "\033[94m"
+    RED = "\033[91m"
+    RESET = "\033[0m"
+    print(f"{RED}[RAG] Loaded {len(metadata)} chunks from {rag_dir}{RESET}")
     return metadata
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:

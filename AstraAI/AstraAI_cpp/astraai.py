@@ -153,7 +153,8 @@ GIT_REPO = ARGS.git_repo
 CBORG_MODE = ARGS.use_cborg
 AMSC_MODE = ARGS.use_amsc
 
-RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
+RAG_METADATA = None
+#load_all_rag_metadata(RAG_METADATA_DIR)
 
 
 # ============================================================
@@ -361,7 +362,7 @@ def run_llm(prompt: str, pr: Optional[int]) -> str:
         print(f"{BLUE}Loading {LLM_MODEL} from Cborg LBL{RESET}\n")
         out = run_cborg(prompt, LLM_MODEL)
     elif (AMSC_MODE):
-        print(f"{RED}###################################################{RESET}\n"
+        print(f"{RED}####################################################{RESET}\n"
               f"{RED}Loading {LLM_MODEL} from American Science Cloud{RESET}\n"
               f"{RED}####################################################{RESET}\n")
         out = run_amsc(prompt, LLM_MODEL)
@@ -492,11 +493,12 @@ from regex import extract_file_name, extract_class_name
 from ast_cpp import clang_query_span, linecol_to_offset
 
 if TERMINAL_MODE:
-    print("[TERMINAL MODE] Codex-style interactive demo (prompt-file mode)")
+    #print("[TERMINAL MODE] Codex-style interactive demo (prompt-file mode)")
 
     while True:
         try:
-            prompt_file = input("Enter the prompt file (or 'exit'): ").strip()
+            prompt_file = input("Enter the prompt file (or 'exit'): ").strip() 
+            RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
 
             if not prompt_file:
                 continue
@@ -554,6 +556,7 @@ log("PR watcher started")
 
 while True:
     pr = get_latest_open_pr()
+    RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
     if not pr:
         log("No open PRs")
         time.sleep(POLL_INTERVAL)
