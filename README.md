@@ -76,8 +76,7 @@ hf auth login
 Enter the token to login
 
 # 3. How to perform inference?
-The inference can be performed using models downloaded from Hugging Face or using any API. Examples using API are given  
-for the CBorg API at Berkeley Lab, and the American Science Cloud API.
+The inference can be performed using models downloaded from Hugging Face or using any API. Examples using API are given for the CBorg API at Berkeley Lab, and the American Science Cloud API.
 [See Inference](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
 
