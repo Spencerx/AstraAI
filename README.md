@@ -1,6 +1,5 @@
 # AI4HPC using LLMs on Linux machines
-This repository is aimed at developing a framework using large language models (LLM) 
-on Linux machines and performing inference, RAG, Agentic AI, and fine-tuning. 
+This repository is aimed at developing a framework using large language models (LLM) on Linux machines to perform inference enhanced with context-aware (Retrieval Augmented Generation based extraction) and structure aware (Abstract Syntax Tree based extraction) for high performance computing codebases in C++ and Fortran. The repository also has the capabity to perform fine-tuning of models downloaded from Hugging Face.
 
 # 1. Environment Setup on Linux
 
@@ -76,13 +75,19 @@ hf auth login
 ```
 Enter the token to login
 
-# 2. How to do inference?
-[See Inference with LLM on Linux machine](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
+# 3. How to perform inference?
+The inference can be performed using models downloaded from Hugging Face or using any API. Examples using API are given  
+for the CBorg API at Berkeley Lab, and the American Science Cloud API.
+[See Inference](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
-# 3. How to do agentic coding?
-[See Agent based coding](https://github.com/AIModCon/modcon-hpc/tree/main/AgenticAI#agent-based-coding)
 
 # 4. How to do fine tuning?
-[See the README.md in the FineTuning directory.](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
+[See FineTuning](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
+
+# 5. How to perform inference with LLM + RAG  + AST?
+This repository has the capability to perform inference with context-aware (Retrieval Augmented Generation based extraction) and structure aware (Abstract Syntax Tree based extraction) information appended to the user prompt.
+[See Perlmutter](https://github.com/AIModCon/modcon-hpc/tree/main/Perlmutter)
+Please note that some of the instructions are machine specific.
+
 
 
