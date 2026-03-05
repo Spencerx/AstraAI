@@ -1,5 +1,5 @@
 # AstraAI 
-AstraAI is aimed at developing a CLI framework using large language models (LLM) on Linux machines to perform inference enhanced with context-aware (Retrieval Augmented Generation based extraction) and structure aware (Abstract Syntax Tree based extraction) for high performance computing codebases in C++ and Fortran. The repository also has the capabity to perform fine-tuning of models downloaded from Hugging Face.
+AstraAI is aimed at developing a CLI framework using large language models (LLM) on Linux machines to perform inference enhanced with context-aware (Retrieval Augmented Generation based extraction) and structure aware (Abstract Syntax Tree based extraction) information for high performance computing codebases in C++ and Fortran. The repository also has the capabity to perform fine-tuning of models downloaded from Hugging Face.
 
 # 1. Environment Setup on Linux
 
