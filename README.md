@@ -85,6 +85,7 @@ Please note that some of the instructions are machine specific.
 
 
 # 4. How to do fine tuning?
+There are routines that can perform fine tuning of models downloaded from [Hugging Face](https://huggingface.co/join)
 [See FineTuning](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
 
 
