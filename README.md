@@ -3,8 +3,7 @@ AstraAI is aimed at developing a CLI framework using large language models (LLM)
 
 # 1. Environment Setup on Linux
 
-This README sets up a Python environment for running LLM models on a Linux filesystem. 
-The installation has to be done in a directory with enough space (~2 TB). 
+This section give the details to set up the Python environment for running LLM models on a Linux filesystem. The installation has to be done in a directory with enough space (~2 TB). 
 
 ```bash
 # Create a folder for your environment and set up a virtual environment
