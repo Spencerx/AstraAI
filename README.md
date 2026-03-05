@@ -1,4 +1,4 @@
-# AI4HPC using LLMs on Linux machines
+# AstraAI 
 This repository is aimed at developing a framework using large language models (LLM) on Linux machines to perform inference enhanced with context-aware (Retrieval Augmented Generation based extraction) and structure aware (Abstract Syntax Tree based extraction) for high performance computing codebases in C++ and Fortran. The repository also has the capabity to perform fine-tuning of models downloaded from Hugging Face.
 
 # 1. Environment Setup on Linux
