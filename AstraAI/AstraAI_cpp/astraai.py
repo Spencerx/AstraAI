@@ -19,12 +19,12 @@ if parent_dir not in sys.path:
 # ============================================================
 # LOCAL MODULE IMPORTS
 # ============================================================
-from llm import run_ollama
+from llm import run_ollama, clean_generated_function, normalize_for_cosine
 from intent import get_user_intent
 from scaffolding import handle_scaffolding, copy_scaffold
 from compilation import handle_compilation
 from codeadvising import handle_codeadvising
-from rag import load_all_rag_metadata
+from rag import load_all_rag_metadata, embed_query, cosine_similarity
 from codemodification import handle_codemodification, classify_task_llm
 from explaining import handle_explaining
 from prompt_io import resolve_output_file
@@ -113,6 +113,8 @@ def parse_args():
         default=None,
         help="GitHub repository in the form org/repo",
     )
+    parser.add_argument("--do-evaluation", action="store_true", help="Do evaluations on benchamark cases")
+    parser.add_argument("--eval-dir", type=str, default=None,help="Do evaluations on benchamark cases")
 
     # -------------------------------------------------
     # Merge file args + CLI args
@@ -139,6 +141,9 @@ def parse_args():
     if args.use_cborg and args.use_amsc:
         parser.error("Only one of --use-cborg or --use-amsc should be given")
 
+    #if args.do_evaluation and not args.eval_dir:
+     #   parser.error("While doing evaluation using the --do-evaluation flag, an evaluation directory --eval-dir should be specified that contains the prompts as text files")
+
     return args
 
 
@@ -152,6 +157,8 @@ TERMINAL_MODE = ARGS.terminal
 GIT_REPO = ARGS.git_repo
 CBORG_MODE = ARGS.use_cborg
 AMSC_MODE = ARGS.use_amsc
+DO_EVALUATION = ARGS.do_evaluation
+EVAL_DIR = ARGS.eval_dir
 
 RAG_METADATA = None
 #load_all_rag_metadata(RAG_METADATA_DIR)
@@ -493,63 +500,140 @@ from regex import extract_file_name, extract_class_name
 from ast_cpp import clang_query_span, linecol_to_offset
 
 if TERMINAL_MODE:
-    #print("[TERMINAL MODE] Codex-style interactive demo (prompt-file mode)")
+    if DO_EVALUATION:  # triggered by --do-evaluation
+        user_prompt_dir = os.path.join(EVAL_DIR, "user_prompts")
+        inference_dir = os.path.join(EVAL_DIR, "inference_results")
+        benchmarks_dir = os.path.join(EVAL_DIR, "benchmarks")
 
-    while True:
-        try:
-            prompt_file = input("Enter the prompt file (or 'exit'): ").strip() 
-            RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
+        os.makedirs(inference_dir, exist_ok=True)
 
-            if not prompt_file:
-                continue
-            if prompt_file.lower() in {"exit", "quit"}:
-                print("Exiting terminal demo.")
-                sys.exit(0)
-                break
+        # Load RAG metadata once
+        RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
 
-            if not os.path.exists(prompt_file):
-                print(f"ERROR: prompt file {prompt_file} not found\n")
+        prompt_files = sorted(os.listdir(user_prompt_dir))
+        for idx, prompt_file_name in enumerate(prompt_files, start=0):
+            prompt_file_path = os.path.join(user_prompt_dir, prompt_file_name)
+            if not os.path.isfile(prompt_file_path):
                 continue
 
-            with open(prompt_file, "r", encoding="utf-8") as f:
+            with open(prompt_file_path, "r", encoding="utf-8") as f:
                 user_prompt = f.read().strip()
 
             if not user_prompt:
-                print("ERROR: prompt file is empty\n")
+                print(f"Skipping empty prompt file: {prompt_file_name}")
                 continue
 
-            log(f"[TERMINAL MODE] Running prompt from file: {prompt_file}")
+            log(f"[EVAL MODE] Running prompt from file: {prompt_file_name}")
 
+            # Run the inference
             result = handle_user_prompt(
                 user_prompt=user_prompt,
                 pr=None,
             )
 
-             # 🔹 2️⃣ Ask user what to do
-            print("\nChoose an option:")
-            print("1. Let AstraAI edit the code")
-            print("2. Ask something else to AstraAI")
+            # Write result to inference_results
+            inference_file_path = os.path.join(inference_dir, f"inference_{idx:02d}.txt")
+            with open(inference_file_path, "w", encoding="utf-8") as f_out:
+                # You can decide what part of result to write, e.g., result["code"] or result["generated_function"]
+                f_out.write(result.get("generated_function", ""))
 
-            choice = input("Enter choice: ").strip()
+            generated_code = result.get("generated_function", "")
+            # Clean it
+            clean_generated_code = clean_generated_function(generated_code)
+            print(clean_generated_code)
+            final_generated_code = normalize_for_cosine(clean_generated_code)
+            print(final_generated_code)
 
-            if choice == "1":
-                # Apply patch
-                apply_conflict_patch(
-                    result["source_file"],
-                    result["code"],
-                    result["start_offset"],
-                    result["end_offset"],
-                    result["generated_function"]
+            # Construct benchmark file name matching the index
+            benchmark_file_name = f"benchmark_{idx:02d}.txt"
+            benchmark_file_path = os.path.join(benchmarks_dir, benchmark_file_name)
+
+            # Check if benchmark file exists
+            if not os.path.isfile(benchmark_file_path):
+                print(f"Benchmark file not found: {benchmark_file_name}")
+                benchmark_code = ""
+            else:
+                with open(benchmark_file_path, "r", encoding="utf-8") as f:
+                    benchmark_code = f.read().strip()
+
+            # Clean and normalize benchmark code
+            clean_benchmark_code = clean_generated_function(benchmark_code)
+            final_benchmark_code = normalize_for_cosine(clean_benchmark_code)
+
+            # Now final_benchmark_code is ready to compare with final_generated_code
+            print("Normalized benchmark code:\n", final_benchmark_code)
+
+            generated_code_embedding = embed_query(final_generated_code, embed_model=EMBED_MODEL)
+            benchmark_code_embedding = embed_query(final_benchmark_code, embed_model=EMBED_MODEL)
+
+            # Compute similarity
+            cos_sim_metric = cosine_similarity(generated_code_embedding, benchmark_code_embedding)
+            print(f"Cosine similarity: {cos_sim_metric:.4f}")
+
+            sys.exit()
+
+        
+
+            print(f"Wrote inference for {prompt_file_name} -> {inference_file_path}")
+
+        print("\nBatch evaluation finished.")
+
+    else:
+        while True:
+            try:
+                prompt_file = input("Enter the prompt file (or 'exit'): ").strip() 
+                RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
+
+                if not prompt_file:
+                    continue
+                if prompt_file.lower() in {"exit", "quit"}:
+                    print("Exiting terminal demo.")
+                    sys.exit(0)
+                    break
+
+                if not os.path.exists(prompt_file):
+                    print(f"ERROR: prompt file {prompt_file} not found\n")
+                    continue
+
+                with open(prompt_file, "r", encoding="utf-8") as f:
+                    user_prompt = f.read().strip()
+
+                if not user_prompt:
+                    print("ERROR: prompt file is empty\n")
+                    continue
+
+                log(f"[TERMINAL MODE] Running prompt from file: {prompt_file}")
+
+                result = handle_user_prompt(
+                    user_prompt=user_prompt,
+                    pr=None,
                 )
 
-                print("\nCode updated with conflict markers.")
-                print("Review and resolve conflicts.\n")
-            
-            print()  # spacing before next prompt
+                # 🔹 2️⃣ Ask user what to do
+                print("\nChoose an option:")
+                print("1. Let AstraAI edit the code")
+                print("2. Ask something else to AstraAI")
 
-        except KeyboardInterrupt:
-            print("\nExiting terminal demo.")
-            sys.exit(0)
+                choice = input("Enter choice: ").strip()
+
+                if choice == "1":
+                    # Apply patch
+                    apply_conflict_patch(
+                        result["source_file"],
+                        result["code"],
+                        result["start_offset"],
+                        result["end_offset"],
+                        result["generated_function"]
+                    )
+
+                    print("\nCode updated with conflict markers.")
+                    print("Review and resolve conflicts.\n")
+            
+                print()  # spacing before next prompt
+
+            except KeyboardInterrupt:
+                print("\nExiting terminal demo.")
+                sys.exit(0)
 
 SEEN = set()
 log("PR watcher started")

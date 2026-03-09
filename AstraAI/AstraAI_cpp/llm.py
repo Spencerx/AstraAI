@@ -39,3 +39,71 @@ def run_ollama(prompt: str, model: str, seed: int = 42) -> str:
         )
     return response["response"].strip()
 
+
+
+import re
+
+def clean_generated_function(code: str) -> str:
+    if not code:
+        return ""
+
+    # Remove amrex namespace prefixes
+    code = re.sub(r'\bamrex::', '', code)
+
+    # Remove includes
+    code = re.sub(r'#include\s*<[^>]+>', '', code)
+
+    # Find function signature (with class qualifier)
+    match = re.search(r'\b\w+::\w+\s*\([^)]*\)\s*\{', code)
+    if not match:
+        return code.strip()
+
+    start = match.start()
+
+    # Find matching closing brace for the function
+    brace_count = 0
+    end = None
+    for i in range(match.end() - 1, len(code)):
+        if code[i] == '{':
+            brace_count += 1
+        elif code[i] == '}':
+            brace_count -= 1
+            if brace_count == 0:
+                end = i + 1
+                break
+
+    if end is None:
+        return code.strip()
+
+    function_code = code[start:end]
+
+    # Clean spacing but preserve formatting
+    function_code = re.sub(r'[ \t]+', ' ', function_code)
+    function_code = re.sub(r' *\n', '\n', function_code)
+
+    return function_code.strip()
+
+
+import re
+
+def normalize_for_cosine(function_code: str) -> str:
+    if not function_code:
+        return ""
+
+    # Remove amrex namespace prefixes
+    function_code = re.sub(r'\bamrex::', '', function_code)
+
+    # Remove common AMReX macros
+    function_code = re.sub(r'\bAMREX_GPU_DEVICE\b', '', function_code)
+    function_code = re.sub(r'\bAMREX_FORCE_INLINE\b', '', function_code)
+
+    # Optional: remove class qualifiers if benchmark has none
+    # function_code = re.sub(r'\b\w+::', '', function_code)
+
+    # Normalize punctuation spacing for tokenizer
+    function_code = re.sub(r'([{}();,+\-*/=])', r' \1 ', function_code)
+
+    # Collapse all whitespace (spaces, tabs, newlines) into single space
+    function_code = re.sub(r'\s+', ' ', function_code)
+
+    return function_code.strip()

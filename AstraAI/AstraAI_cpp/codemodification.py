@@ -125,35 +125,40 @@ def handle_add_class_method(
     classname = extract_class_name(prompt=user_prompt);
     funcname = extract_function_name(prompt=user_prompt);
 
+    print("Function name is ", funcname, "\n")
+
     # get the function span (automatically finds header if free function)
-    span = clang_query_span(filename, funcname, classname)
+    if(funcname):
+        span = clang_query_span(filename, funcname, classname)
 
-    if span is None:
-        raise RuntimeError(f"Function {funcname} not found")
+        if span is None:
+            raise RuntimeError(f"Function {funcname} not found")
 
-    # unpack correctly
-    source_file, start_line, start_col, end_line, end_col = span
+        # unpack correctly
+        source_file, start_line, start_col, end_line, end_col = span
 
-    # read the file where the function is actually defined
-    with open(source_file, "r", encoding="utf-8") as f:
-        code = f.read()
+        # read the file where the function is actually defined
+        with open(source_file, "r", encoding="utf-8") as f:
+            code = f.read()
 
-    # convert line/col to Python offsets
-    start_offset = linecol_to_offset(code, start_line, start_col)
-    end_offset   = linecol_to_offset(code, end_line, end_col)
-    end_offset = end_offset + 1
+        # convert line/col to Python offsets
+        start_offset = linecol_to_offset(code, start_line, start_col)
+        end_offset   = linecol_to_offset(code, end_line, end_col)
+        end_offset = end_offset + 1
 
-    # extract the function text
-    original_fn = code[start_offset:end_offset]
+        # extract the function text
+        original_fn = code[start_offset:end_offset]
 
-    #print("The extracted code function is from file:", source_file)
-    #print(original_fn)
-    if(original_fn):
-        func_code_for_prompt=f"""---------------- THE FUNCTION TO BE MODIFIED -------------
-            ```cpp
-            {original_fn}
-            ```cpp
+        #print("The extracted code function is from file:", source_file)
+        #print(original_fn)
+        if(original_fn):
+            func_code_for_prompt=f"""---------------- THE FUNCTION TO BE MODIFIED -------------
+                ```cpp
+                {original_fn}
+                ```cpp
             """
+    else:
+        func_code_for_prompt=""
     #print(original_fn);   
     #print()  # spacing before next prompt 
 
@@ -165,21 +170,17 @@ def handle_add_class_method(
     # -----------------------------
     prompt = f"""
 You are an AMReX / C++ expert. Your task is to write correct, compilable C++ code.
-Output *only valid C++ code*. *Do not use Python, pseudocode, or any other language.*
 Use proper C++ types, loops, and AMReX constructs.
 
-
 CONSTRAINTS (STRICT):
-0. IMPORTANT: Output ONLY valid C++ code. ***Do not output Python.***
 1. Do NOT modify the function signature.
-2. Do NOT add arguments.
-3. All required data already exists as class members.
-4. Access class members directly.
-5. Do NOT redefine any member variables.
-6. Write exactly one function definition.
-7. Output ONLY the function code.
-8. Use MFIter and ParallelFor for GPU parallelization.
-
+2. Inlcude ONLY the function and NO header includes.
+3. Do NOT add arguments.
+4. All required data already exists as class members.
+5. Access class members directly.
+6. Do NOT redefine any member variables.
+7. Use MFIter and ParallelFor for GPU parallelization.
+8. Do not add nnecessary variables.
 
 ---------------- RAG REFERENCE CONTEXT ----------------
 ```cpp
@@ -200,7 +201,6 @@ Write the requested C++ function below:
 USER PROMPT:
 {user_prompt}
 
-In the resposne, do not include marker fences like ```cpp
 """
     #print(prompt)
     with open("full_prompt.txt", "w") as f:
@@ -218,14 +218,17 @@ In the resposne, do not include marker fences like ```cpp
         response,
     )
 
-    return {
-    "source_file": source_file,
-    "code": code,
-    "start_offset": start_offset,
-    "end_offset": end_offset,
-    "generated_function": response,
-    }
+    if funcname:
+        return {
+        "source_file": source_file,
+        "code": code,
+        "start_offset": start_offset,
+        "end_offset": end_offset,
+        "generated_function": response,
+        }
  
+    else:
+        return {"generated_function": response,}
     #sys.exit()
 
 def handle_legacy_llm_rag(*,
