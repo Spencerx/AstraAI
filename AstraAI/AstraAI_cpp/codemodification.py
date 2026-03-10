@@ -82,7 +82,10 @@ def handle_add_class_method(
     top_k,
     embed_model: str,
     class_name: str,
-    file_name: str) -> None:
+    file_name: str,
+    no_rag: str,
+    no_ast: str
+    ) -> None:
 
     """
     Code modification using RAG context + LLM.
@@ -96,79 +99,95 @@ def handle_add_class_method(
     # -----------------------------
     # Retrieve context via RAG
     # -----------------------------
-    print(f"{RED}Performing Retrieval Augmented Generation {RESET}\n")
-    context = build_rag_context(
-        user_prompt,
-        metadata=rag_metadata,
-        embed_model=embed_model,
-        top_k=top_k,
-        min_sim=0.3,
-    )
+
+    if not no_rag:
+        print(f"{RED}Performing Retrieval Augmented Generation {RESET}\n")
+        
+        # Lines to remove for RAG
+        metadata_prefixes = ("class:", "file:", "function:")
+
+        # Remove lines starting with any of the prefixes
+        clean_user_prompt = "\n".join(
+            line for line in user_prompt.splitlines() 
+            if not line.strip().startswith(metadata_prefixes)
+            )
+
+        rag_context = build_rag_context(
+            clean_user_prompt,
+            metadata=rag_metadata,
+            embed_model=embed_model,
+            top_k=top_k,
+            min_sim=0.3,
+        )
+        #print(rag_context)
+        #sys.exit()
 
     #print("The context is \n")
     #print(context)
     #sys.exit()
 
+    if not no_ast:
+        print(f"{RED}Performing Abstract Syntax Tree info extraction {RESET}\n")
+        members = extract_member_variables(
+            class_name,
+            file_name,
+            compile_commands_path="compile_commands.json"
+        )
 
+        ast_context = "\n".join(members)
 
-    print(f"{RED}Performing Abstract Syntax Tree info extraction {RESET}\n")
-    members = extract_member_variables(
-        class_name,
-        file_name,
-        compile_commands_path="compile_commands.json"
-    )
+        filename = extract_file_name(prompt=user_prompt);
+        classname = extract_class_name(prompt=user_prompt);
+        funcname = extract_function_name(prompt=user_prompt);
 
-    member_context = "\n".join(members)
+        print("Function name is ", funcname, "\n")
 
+        # get the function span (automatically finds header if free function)
+        if(funcname):
+            span = clang_query_span(filename, funcname, classname)
 
-    filename = extract_file_name(prompt=user_prompt);
-    classname = extract_class_name(prompt=user_prompt);
-    funcname = extract_function_name(prompt=user_prompt);
+            if span is None:
+                raise RuntimeError(f"Function {funcname} not found")
 
-    print("Function name is ", funcname, "\n")
+            # unpack correctly
+            source_file, start_line, start_col, end_line, end_col = span
 
-    # get the function span (automatically finds header if free function)
-    if(funcname):
-        span = clang_query_span(filename, funcname, classname)
+            # read the file where the function is actually defined
+            with open(source_file, "r", encoding="utf-8") as f:
+                code = f.read()
 
-        if span is None:
-            raise RuntimeError(f"Function {funcname} not found")
+            # convert line/col to Python offsets
+            start_offset = linecol_to_offset(code, start_line, start_col)
+            end_offset   = linecol_to_offset(code, end_line, end_col)
+            end_offset = end_offset + 1
 
-        # unpack correctly
-        source_file, start_line, start_col, end_line, end_col = span
+            # extract the function text
+            original_fn = code[start_offset:end_offset]
 
-        # read the file where the function is actually defined
-        with open(source_file, "r", encoding="utf-8") as f:
-            code = f.read()
-
-        # convert line/col to Python offsets
-        start_offset = linecol_to_offset(code, start_line, start_col)
-        end_offset   = linecol_to_offset(code, end_line, end_col)
-        end_offset = end_offset + 1
-
-        # extract the function text
-        original_fn = code[start_offset:end_offset]
-
-        #print("The extracted code function is from file:", source_file)
-        #print(original_fn)
-        if(original_fn):
-            func_code_for_prompt=f"""---------------- THE FUNCTION TO BE MODIFIED -------------
-                ```cpp
-                {original_fn}
-                ```cpp
-            """
-    else:
-        func_code_for_prompt=""
+            #print("The extracted code function is from file:", source_file)
+            #print(original_fn)
+            if(original_fn):
+                func_code_for_prompt=f"""---------------- THE FUNCTION TO BE MODIFIED -------------
+                    ```cpp
+                    {original_fn}
+                    ```cpp
+                """
+        else:
+            func_code_for_prompt=""
     #print(original_fn);   
     #print()  # spacing before next prompt 
 
-
-
     print(f"{RED}Building the prompt: RAG chunks + AST info + user prompt {RESET}\n")
+    if(no_rag):
+        rag_context = f""" """ 
+    if(no_ast):
+        ast_context = f""" """
+        func_code_for_prompt = f""" """
+        funcname = ""
     # -----------------------------
     # Build code advising prompt
     # -----------------------------
-    prompt = f"""
+    full_prompt = f"""
 You are an AMReX / C++ expert. Your task is to write correct, compilable C++ code.
 Use proper C++ types, loops, and AMReX constructs.
 
@@ -184,13 +203,13 @@ CONSTRAINTS (STRICT):
 
 ---------------- RAG REFERENCE CONTEXT ----------------
 ```cpp
-{context}   
+{rag_context}   
 ```
 
 ---------------- MEMBER VARIABLE CONTEXT ---------------
 The member variables in the class are
 ```cpp
-{member_context}
+{ast_context}
 
 
 {func_code_for_prompt}
@@ -204,12 +223,12 @@ USER PROMPT:
 """
     #print(prompt)
     with open("full_prompt.txt", "w") as f:
-        f.write(prompt)
+        f.write(full_prompt)
 
     # -----------------------------
     # LLM call
     # -----------------------------
-    response = run_llm(prompt, pr)
+    response = run_llm(full_prompt, pr)
     if not response:
         return
 
@@ -228,7 +247,10 @@ USER PROMPT:
         }
  
     else:
-        return {"generated_function": response,}
+        return {
+        "full_prompt": full_prompt,
+         "generated_function": response,
+        }
     #sys.exit()
 
 def handle_legacy_llm_rag(*,
@@ -312,6 +334,8 @@ def handle_codemodification(*,
     rag_metadata,
     top_k,
     embed_model: str,
+    no_rag: str,
+    no_ast: str,
     ):
 
     task_type = classify_task_llm(prompt=user_prompt,
@@ -345,5 +369,7 @@ def handle_codemodification(*,
                                 embed_model=embed_model,
                                 class_name=class_name,
                                 file_name=file_name,
+                                no_rag=no_rag,
+                                no_ast=no_ast
                                 )
         return result

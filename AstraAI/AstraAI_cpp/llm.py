@@ -83,7 +83,6 @@ def clean_generated_function(code: str) -> str:
 
     return function_code.strip()
 
-
 import re
 
 def normalize_for_cosine(function_code: str) -> str:
@@ -107,3 +106,60 @@ def normalize_for_cosine(function_code: str) -> str:
     function_code = re.sub(r'\s+', ' ', function_code)
 
     return function_code.strip()
+
+
+from tree_sitter import Parser
+from tree_sitter_languages import get_language
+import re
+
+cpp = get_language("cpp")
+parser = Parser()
+parser.set_language(cpp)
+
+
+def traverse(node):
+    yield node
+    for child in node.children:
+        yield from traverse(child)
+
+
+def normalize_cpp_locals(code):
+
+    tree = parser.parse(bytes(code, "utf8"))
+    root = tree.root_node
+
+    params = set()
+    locals_found = set()
+
+    # ---- collect parameters ----
+    for node in traverse(root):
+        if node.type == "parameter_declaration":
+            for sub in traverse(node):
+                if sub.type == "identifier":
+                    params.add(code[sub.start_byte:sub.end_byte])
+
+    # ---- collect local variable declarations ----
+    for node in traverse(root):
+        if node.type == "declaration":
+            for sub in traverse(node):
+                if sub.type == "identifier":
+
+                    name = code[sub.start_byte:sub.end_byte]
+
+                    if name not in params:
+                        locals_found.add(name)
+
+    # ---- build replacement map ----
+    var_map = {}
+    counter = 1
+    for name in sorted(locals_found):
+        var_map[name] = f"VAR{counter}"
+        counter += 1
+
+    # ---- replace in original code ----
+    normalized = code
+    for k, v in var_map.items():
+        normalized = re.sub(rf"\b{k}\b", v, normalized)
+
+    return normalized
+

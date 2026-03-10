@@ -115,6 +115,8 @@ def parse_args():
     )
     parser.add_argument("--do-evaluation", action="store_true", help="Do evaluations on benchamark cases")
     parser.add_argument("--eval-dir", type=str, default=None,help="Do evaluations on benchamark cases")
+    parser.add_argument("--no-rag", action="store_true", help="Do not perform RAG")
+    parser.add_argument("--no-ast", action="store_true", help="Do not perform AST")
 
     # -------------------------------------------------
     # Merge file args + CLI args
@@ -159,6 +161,8 @@ CBORG_MODE = ARGS.use_cborg
 AMSC_MODE = ARGS.use_amsc
 DO_EVALUATION = ARGS.do_evaluation
 EVAL_DIR = ARGS.eval_dir
+NO_RAG = ARGS.no_rag
+NO_AST = ARGS.no_ast
 
 RAG_METADATA = None
 #load_all_rag_metadata(RAG_METADATA_DIR)
@@ -482,7 +486,9 @@ def handle_user_prompt(*, user_prompt: str, pr: Optional[int]):
                                emit_response_code_only=emit_response_code_only,
                                rag_metadata=RAG_METADATA,
                                top_k=TOP_K,
-                               embed_model=EMBED_MODEL)
+                               embed_model=EMBED_MODEL,
+                               no_rag=NO_RAG,
+                               no_ast=NO_AST)
    
 
     # default = code generation / editing
@@ -498,6 +504,7 @@ import difflib
 from colorama import Fore, Style
 from regex import extract_file_name, extract_class_name
 from ast_cpp import clang_query_span, linecol_to_offset
+from llm import normalize_cpp_locals
 
 if TERMINAL_MODE:
     if DO_EVALUATION:  # triggered by --do-evaluation
@@ -515,7 +522,7 @@ if TERMINAL_MODE:
             prompt_file_path = os.path.join(user_prompt_dir, prompt_file_name)
             if not os.path.isfile(prompt_file_path):
                 continue
-
+            print("Reading prompt file", prompt_file_path)
             with open(prompt_file_path, "r", encoding="utf-8") as f:
                 user_prompt = f.read().strip()
 
@@ -533,50 +540,97 @@ if TERMINAL_MODE:
 
             # Write result to inference_results
             inference_file_path = os.path.join(inference_dir, f"inference_{idx:02d}.txt")
-            with open(inference_file_path, "w", encoding="utf-8") as f_out:
-                # You can decide what part of result to write, e.g., result["code"] or result["generated_function"]
-                f_out.write(result.get("generated_function", ""))
-
+            full_prompt_file_path = os.path.join(inference_dir, f"full_prompt_{idx:02d}.txt")
+            
             generated_code = result.get("generated_function", "")
+            full_prompt = result.get("full_prompt", "")
+
+            with open(full_prompt_file_path, "w", encoding="utf-8") as f:
+                f.write(full_prompt);
+
             # Clean it
             clean_generated_code = clean_generated_function(generated_code)
-            print(clean_generated_code)
             final_generated_code = normalize_for_cosine(clean_generated_code)
+            print("clean generated code\n");
+            print(clean_generated_code)
             print(final_generated_code)
-
+            normalized_generated_code = normalize_cpp_locals(final_generated_code)
+            print("Normalized generated code", normalized_generated_code)
+                
             # Construct benchmark file name matching the index
             benchmark_file_name = f"benchmark_{idx:02d}.txt"
             benchmark_file_path = os.path.join(benchmarks_dir, benchmark_file_name)
 
             # Check if benchmark file exists
             if not os.path.isfile(benchmark_file_path):
-                print(f"Benchmark file not found: {benchmark_file_name}")
-                benchmark_code = ""
+                sys.exit(f"Error: Benchmark file not found: {benchmark_file_name}")
             else:
                 with open(benchmark_file_path, "r", encoding="utf-8") as f:
                     benchmark_code = f.read().strip()
 
             # Clean and normalize benchmark code
             clean_benchmark_code = clean_generated_function(benchmark_code)
+            print("clean benchmark code\n");
+            print(clean_benchmark_code)
             final_benchmark_code = normalize_for_cosine(clean_benchmark_code)
+            normalized_benchmark_code = normalize_cpp_locals(final_benchmark_code)
+            print("Normalized benchmark code:\n", normalized_benchmark_code)
 
-            # Now final_benchmark_code is ready to compare with final_generated_code
-            print("Normalized benchmark code:\n", final_benchmark_code)
-
-            generated_code_embedding = embed_query(final_generated_code, embed_model=EMBED_MODEL)
-            benchmark_code_embedding = embed_query(final_benchmark_code, embed_model=EMBED_MODEL)
+            generated_code_embedding = embed_query(normalized_generated_code, embed_model=EMBED_MODEL)
+            benchmark_code_embedding = embed_query(normalized_benchmark_code, embed_model=EMBED_MODEL)
 
             # Compute similarity
             cos_sim_metric = cosine_similarity(generated_code_embedding, benchmark_code_embedding)
             print(f"Cosine similarity: {cos_sim_metric:.4f}")
 
-            sys.exit()
+            with open(inference_file_path, "w", encoding="utf-8") as f_out:
+                # You can decide what part of result to write, e.g., result["code"] or result["generated_function"]
+                f_out.write("===================================\n")
+                f_out.write("Generated: From inference\n")
+                f_out.write("===================================\n")
+                f_out.write(result.get("generated_function", ""))
+                f_out.write("\n")    
+           
+                f_out.write("=============================================================\n")
+                f_out.write("Generated: Final cleaned up code (removing amrex:: etc...)\n")
+                f_out.write("=============================================================\n")
+                f_out.write(final_generated_code)
+                f_out.write("\n")    
+                
 
-        
+                f_out.write("====================================================================\n")
+                f_out.write("Generated: Normalized code (renaming temporary variables etc...\n")
+                f_out.write("====================================================================\n")
+                f_out.write(normalized_generated_code)
+                f_out.write("\n")    
+
+                f_out.write("===================================\n")
+                f_out.write("Benchmark: From saved file\n")
+                f_out.write("===================================\n")
+                f_out.write(benchmark_code)
+                f_out.write("\n")    
+
+
+                f_out.write("====================================================================\n")
+                f_out.write("Benchmark: Final cleaned up code (removing amrex:: etc...)\n")
+                f_out.write("====================================================================\n")
+                f_out.write(final_benchmark_code)
+                f_out.write("\n")    
+ 
+                f_out.write("====================================================================\n")
+                f_out.write("benchmark: Normalized code (renaming temporary variables etc...\n")
+                f_out.write("====================================================================\n")
+                f_out.write(normalized_benchmark_code)
+                f_out.write("\n")
+                f_out.write(f"Cosine similarity: {cos_sim_metric:.4f}\n")
+
+            #sys.exit()
+
 
             print(f"Wrote inference for {prompt_file_name} -> {inference_file_path}")
 
         print("\nBatch evaluation finished.")
+        sys.exit()
 
     else:
         while True:
