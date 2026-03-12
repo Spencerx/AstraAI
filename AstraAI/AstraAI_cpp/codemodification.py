@@ -192,6 +192,7 @@ You are an AMReX / C++ expert. Your task is to write correct, compilable C++ cod
 Use proper C++ types, loops, and AMReX constructs.
 
 CONSTRAINTS (STRICT):
+0. **Output only C++ code. Do not write Python**
 1. Do NOT modify the function signature.
 2. Inlcude ONLY the function and NO header includes.
 3. Do NOT add arguments.

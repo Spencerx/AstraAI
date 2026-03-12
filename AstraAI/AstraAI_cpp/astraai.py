@@ -30,6 +30,15 @@ from explaining import handle_explaining
 from prompt_io import resolve_output_file
 from code_editing import apply_conflict_patch
 
+print(r"""
+      _         _                 _     ___
+     / \   ___ | |_ _ __ __ _    / \   |_ _|
+    / _ \ / __|| __| '__/ _` |  / _ \   | |
+   / ___ \\__ \| |_| | | (_| | / ___ \  | |
+  /_/   \_\___/ \__|_|  \____|/_/   \_\|___|
+                 
+""")
+
 # ============================================================
 # CONFIG
 # ============================================================
@@ -373,9 +382,9 @@ def run_llm(prompt: str, pr: Optional[int]) -> str:
         print(f"{BLUE}Loading {LLM_MODEL} from Cborg LBL{RESET}\n")
         out = run_cborg(prompt, LLM_MODEL)
     elif (AMSC_MODE):
-        print(f"{RED}####################################################{RESET}\n"
+        print(f"{RED}#############################################################{RESET}\n"
               f"{RED}Loading {LLM_MODEL} from American Science Cloud{RESET}\n"
-              f"{RED}####################################################{RESET}\n")
+              f"{RED}#############################################################{RESET}\n")
         out = run_amsc(prompt, LLM_MODEL)
     else:
         print(f"{BLUE}Loading {LLM_MODEL} from Hugging face{RESET}\n")
@@ -508,9 +517,9 @@ from llm import normalize_cpp_locals
 
 if TERMINAL_MODE:
     if DO_EVALUATION:  # triggered by --do-evaluation
-        user_prompt_dir = os.path.join(EVAL_DIR, "user_prompts")
+        user_prompt_dir = os.path.join(EVAL_DIR,"../../user_prompts")
+        benchmarks_dir = os.path.join(EVAL_DIR, "../../benchmarks")
         inference_dir = os.path.join(EVAL_DIR, "inference_results")
-        benchmarks_dir = os.path.join(EVAL_DIR, "benchmarks")
 
         os.makedirs(inference_dir, exist_ok=True)
 
@@ -635,6 +644,7 @@ if TERMINAL_MODE:
     else:
         while True:
             try:
+                
                 prompt_file = input("Enter the prompt file (or 'exit'): ").strip() 
                 RAG_METADATA = load_all_rag_metadata(RAG_METADATA_DIR)
 
