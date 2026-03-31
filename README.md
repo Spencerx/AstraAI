@@ -104,6 +104,8 @@ its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
 Software to reproduce, distribute copies to the public, prepare derivative
 works, and perform publicly and display publicly, and to permit others to do so.
 
+Please see the copyright notice at [Legal.txt](https://github.com/AIForHPC/AstraAI/blob/main/Legal.txt)
+
 # License
 The license for AstraAI can be found in [license.txt](https://github.com/AIForHPC/AstraAI/blob/main/license.txt)
 
