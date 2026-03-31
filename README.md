@@ -109,7 +109,19 @@ Please see the copyright notice at [Legal.txt](https://github.com/AIForHPC/Astra
 # License
 The license for AstraAI can be found in [license.txt](https://github.com/AIForHPC/AstraAI/blob/main/license.txt)
 
-
+# Citation
+To cite AstraAI, please use the [arxiv paper](https://arxiv.org/abs/2603.27423)
+```
+@misc{natarajan2026astraaillmsretrievalastguided,
+      title={AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases}, 
+      author={Mahesh Natarajan and Xiaoye Li and Weiqun Zhang},
+      year={2026},
+      eprint={2603.27423},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2603.27423}, 
+}
+```
 
 
 
