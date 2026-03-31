@@ -105,7 +105,7 @@ Software to reproduce, distribute copies to the public, prepare derivative
 works, and perform publicly and display publicly, and to permit others to do so.
 
 # License
-The license for AstraAI can be found in [license.txt][https://github.com/AIForHPC/AstraAI/blob/main/license.txt]
+The license for AstraAI can be found in [license.txt](https://github.com/AIForHPC/AstraAI/blob/main/license.txt)
 
 
 
