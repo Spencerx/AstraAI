@@ -76,17 +76,17 @@ Enter the token to login
 
 # 2. How to perform basic inference?
 The basic inference that converts the terminal to a chatbot can be performed using models downloaded from Hugging Face or using any API. Examples using API are given for the CBorg API at Berkeley Lab, and the American Science Cloud API.  
-[See Inference](https://github.com/AIModCon/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
+[See Inference](https://github.com/AIForHPC/modcon-hpc/tree/main/Inference#inference-with-llm-on-linux-machine)
 
 # 3. How to perform inference with LLM + RAG  + AST?
 This repository has the capability to perform inference with context-aware (Retrieval Augmented Generation based extraction) and structure aware (Abstract Syntax Tree based extraction) information appended to the user prompt.  
-[See Perlmutter](https://github.com/AIModCon/modcon-hpc/tree/main/Perlmutter)  
+[See Perlmutter](https://github.com/AIForHPC/modcon-hpc/tree/main/Perlmutter)  
 Please note that some of the instructions are machine specific.
 
 
 # 4. How to fine tune a model?
 There are routines that can perform fine tuning of models downloaded from [Hugging Face](https://huggingface.co/join)  
-[See FineTuning](https://github.com/AIModCon/modcon-hpc/tree/main/FineTuning)
+[See FineTuning](https://github.com/AIForHPC/modcon-hpc/tree/main/FineTuning)
 
 # Copyright Notice
 AstraAI Copyright (c) 2026, The Regents of the University of California,
