@@ -18,10 +18,10 @@ metrics:
 
 agent_card:
   name: "AstraAI"
-  description: "An open-source, Copilot-like AI agent for HPC codebases combining LLMs, RAG, and AST-guided code editing to produce safe, context-aware modifications."
+  description: "An open-source, AI agent for HPC codebases combining LLMs, RAG, and AST-guided code editing to produce safe, context-aware modifications."
   provider:
     organization: "Lawrence Berkeley National Laboratory"
-    url: "https://github.com/AIModCon/modcon-hpc (currently private)"
+    url: "https://github.com/AIForHPC/AstraAI"
   version: "0.1.0"
   documentation_url: ""
   protocol_version: "0.1.0"
@@ -72,7 +72,7 @@ Mahesh Natarajan, Xiaoye Li (Lawrence Berkeley National Laboratory)
 No additional contributors.
 
 ## Agent Changelog
-+ **2026-01-17** – Initial internal version (private repository)
++ **2026-06-01** – https://github.com/AIForHPC/AstraAI/commit/e871e05c3bc6b38ee9522802010ad56a7ad99f14
 
 
 ## Agent short description
@@ -141,7 +141,7 @@ The agent does not depend on a single fixed model. It supports interchangeable o
   - Required permissions: filesystem access, compute time on GPU nodes
 
 ### Service endpoint and discovery
-- Base URL: N/A (currently local/private use)
+- Base URL: https://github.com/AIForHPC/AstraAI.git
 - A2A discovery path(s): N/A (not deployed)
 - Invocation endpoint (example): N/A (currently invoked via Python scripts or CLI)
 
@@ -216,14 +216,7 @@ AstraAI supports the GENESIS mission by enhancing productivity and reducing risk
 ## How to Use
 
 ### Install Instructions
-Detailed step-by-step instructions are provided in the GitHub repository which is currently private. Here is a summary of the steps.
-
-- Clone the repository.
-- Download Ollama runtime.
-- Download llama.cpp and configure.
-- Create a Python virtual environment and install dependencies (PyTorch, Transformers, bitsandbytes, etc.).  
-- Hugging Face authentication and model downloads.  
-- Ensure required AST tooling (Clang / fparser) is installed and accessible.
+Detailed step-by-step instructions are provided in the README section of the GitHub repository - https://github.com/AIForHPC/AstraAI.git.
 
 ### Agent Configuration
 
