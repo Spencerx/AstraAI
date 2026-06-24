@@ -178,8 +178,13 @@ huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
 
 ## Papers and Scientific Outputs
 
-1. Talk scheduled at the 2nd annual High Performance Software Foundation conference in Chicago on March 16-20, 2026.
-2. Planned workshop paper submission in the 2nd International Workshop on Foundational Large Language Models Advances for HPC (LLM4HPC) to be held in conjunction with ISC-HPC 2026, June 26th, 2026, Hamburg, Germany
+### Paper
+1. Natarajan, Mahesh, Xiaoye Li, and Weiqun Zhang. "AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases." arXiv preprint arXiv:2603.27423 (2026). DOI: https://doi.org/10.48550/arXiv.2603.27423 · https://arxiv.org/abs/2603.27423
+
+2. Mahesh Natarajan, Xiaoye Li, and Weiqun Zhang. AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases. 2nd LLM4HPC workshop (ISC-HPC 2026), June 26, 2026, Hamburg, Germany.
+
+### Talks
+1. Mahesh Natarajan. AstraAI: An Agentic Framework Combining LLMs, Retrieval, and AST-Guided Edits for HPC Codebases — Demonstrations on AMReX. 2nd HPSF AMReX project meeting, March 19, 2026, Chicago, IL.
 
 ## Agent License
 
@@ -205,7 +210,7 @@ HPC developers and scientific software engineers working on codebases in C++ and
 
 ### Mission Relevance
 
-AstraAI supports the GENESIS mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers with faster development of scientific solvers, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
+AstraAI supports the Genesis mission by enhancing productivity and reducing risk in scientific software development workflows. By providing safe, context-aware code suggestions, automated scaffolding, and AST-guided edits for HPC codebases, the agent helps researchers with faster development of scientific solvers, and contributes to maximizing the impact of DOE HPC projects and cross-domain research initiatives.
 
 ### Out-of-Scope Use Cases
 
