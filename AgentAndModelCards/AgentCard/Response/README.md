@@ -82,7 +82,7 @@ An agentic AI assistant for HPC codebases that combines LLMs, Retrieval Augmente
 AstraAI interprets developer intent from terminal prompts or GitHub pull-request comments, retrieves relevant HPC code examples via RAG, and uses AST-based analysis to identify editable regions, infer context-aware edit constraints, and verify generated changes. These constraints are incorporated into a structured LLM prompt alongside the user request and retrieved context. The LLM output is subsequently validated against AST-derived structural and semantic rules and applied as a scoped, syntax-preserving modification, improving productivity while reducing risk in large-scale HPC software development.
 
 ## Underlying model(s) (optional)
-The agent does not depend on a single fixed model. It supports interchangeable open-source LLM backends, including models distributed via Hugging Face, provided that the model weights or checkpoints can be downloaded and served locally.
+The agent does not depend on a single fixed model. It supports interchangeable open-source LLM backends, including models distributed via Hugging Face and frontier LLMs via API provided by the American Science Cloud (AmSC). 
 
 ## Inputs and outputs
 1. Input: Text prompts from terminal or GitHub PR comments.
@@ -105,7 +105,7 @@ The agent does not depend on a single fixed model. It supports interchangeable o
   **Input/Output Modes**: text/plain / text/plain
 
 ### Tools and permissions
-- Tool: Model and embedding repository (Hugging Face Hub)
+- Tool: Model and embedding repository (Hugging Face Hub, Frontier LLMs via API using AmSC resources)
   - Purpose: Source large language models and embedding models used by the agent
   - Inputs: Model identifiers, configuration files, tokenizer artifacts
   - Outputs: Model weights, tokenizers, embedding models
@@ -147,7 +147,7 @@ The agent does not depend on a single fixed model. It supports interchangeable o
 
 ## Runtime Infrastructure
 
-This agent (AstraAI) is designed for HPC codebases and combines Python-based LLM runtimes, Hugging Face models, AST-guided code analysis, and code editing tools. It has been tested on GPU-equipped HPC nodes and local workstations.
+This agent (AstraAI) is designed for HPC codebases and combines Python-based LLM runtimes, Hugging Face models/Frontier LLMs via API using the American Science Cloud resources , AST-guided code analysis, and code editing tools. It has been tested on GPU-equipped HPC nodes and local workstations.
 
 ### Hardware
 - GPU-enabled HPC cluster or workstation (CUDA 12.1 compatible)
@@ -179,7 +179,7 @@ huggingface-cli download mistralai/Mistral-7B-Instruct-v0.2 \
 ## Papers and Scientific Outputs
 
 ### Paper
-1. Natarajan, Mahesh, Xiaoye Li, and Weiqun Zhang. "AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases." arXiv preprint arXiv:2603.27423 (2026). DOI: https://doi.org/10.48550/arXiv.2603.27423 · https://arxiv.org/abs/2603.27423
+1. Natarajan, Mahesh, Xiaoye Li, and Weiqun Zhang. "AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases." arXiv preprint arXiv:2603.27423 (2026). DOI: https://doi.org/10.48550/arXiv.2603.27423 
 
 2. Mahesh Natarajan, Xiaoye Li, and Weiqun Zhang. AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases. 2nd LLM4HPC workshop (ISC-HPC 2026), June 26, 2026, Hamburg, Germany.
 
